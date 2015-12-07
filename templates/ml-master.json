@@ -1,0 +1,486 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "MaxSize": {
+            "AllowedValues": [
+                "0",
+                "1"
+            ],
+            "Default": "1",
+            "Description": "Set MinSize and MaxSize to 0 to stop instances. Set it to 1 to start instances.",
+            "Type": "String"
+        },
+        "MinSize": {
+            "AllowedValues": [
+                "0",
+                "1"
+            ],
+            "Default": "1",
+            "Description": "Set MinSize and MaxSize to 0 to stop instances. Set it to 1 to start instances",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "AutoScalingGroupb1": {
+            "Properties": {
+                "AvailabilityZones": [
+                    "us-east-1b"
+                ],
+                "LaunchConfigurationName": {
+                    "Ref": "LaunchConfigb1"
+                },
+                "LoadBalancerNames": [
+                    {
+                        "Ref": "MarkLogicLoadBalancer"
+                    }
+                ],
+                "MaxSize": {
+                    "Ref": "MinSize"
+                },
+                "MinSize": {
+                    "Ref": "MaxSize"
+                },
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "PropagateAtLaunch": true,
+                        "Value": "MarkLogic-loadbalancer-zone-b-instance-1"
+                    }
+                ],
+                "VPCZoneIdentifier": [
+                    "subnet-c4e4deef"
+                ]
+            },
+            "Type": "AWS::AutoScaling::AutoScalingGroup"
+        },
+        "AutoScalingGroupc1": {
+            "Properties": {
+                "AvailabilityZones": [
+                    "us-east-1c"
+                ],
+                "LaunchConfigurationName": {
+                    "Ref": "LaunchConfigc1"
+                },
+                "LoadBalancerNames": [
+                    {
+                        "Ref": "MarkLogicLoadBalancer"
+                    }
+                ],
+                "MaxSize": {
+                    "Ref": "MinSize"
+                },
+                "MinSize": {
+                    "Ref": "MaxSize"
+                },
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "PropagateAtLaunch": true,
+                        "Value": "MarkLogic-loadbalancer-zone-c-instance-1"
+                    }
+                ],
+                "VPCZoneIdentifier": [
+                    "subnet-1558a563"
+                ]
+            },
+            "Type": "AWS::AutoScaling::AutoScalingGroup"
+        },
+        "AutoScalingGroupe1": {
+            "Properties": {
+                "AvailabilityZones": [
+                    "us-east-1e"
+                ],
+                "LaunchConfigurationName": {
+                    "Ref": "LaunchConfige1"
+                },
+                "LoadBalancerNames": [
+                    {
+                        "Ref": "MarkLogicLoadBalancer"
+                    }
+                ],
+                "MaxSize": {
+                    "Ref": "MinSize"
+                },
+                "MinSize": {
+                    "Ref": "MaxSize"
+                },
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "PropagateAtLaunch": true,
+                        "Value": "MarkLogic-loadbalancer-zone-e-instance-1"
+                    }
+                ],
+                "VPCZoneIdentifier": [
+                    "subnet-e04ef1dd"
+                ]
+            },
+            "Type": "AWS::AutoScaling::AutoScalingGroup"
+        },
+        "ClusterSecurityGroup": {
+            "Properties": {
+                "GroupDescription": "Enable communication of cluster ports e.g. For nodes within cluster and replication between clusters.",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": 7997,
+                        "IpProtocol": "tcp",
+                        "ToPort": 8002
+                    }
+                ],
+                "VpcId": "vpc-6a80380e"
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        },
+        "LaunchConfigb1": {
+            "Properties": {
+                "EbsOptimized": "false",
+                "IamInstanceProfile": "rasingh-MarkLogic-role",
+                "ImageId": "ami-5bfcb131",
+                "InstanceType": "t2.small",
+                "KeyName": "rasingh-MarkLogic",
+                "SecurityGroups": [
+                    {
+                        "Ref": "ClusterSecurityGroup"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash\n",
+                                "echo \"<?php phpinfo(); ?>\" > /tmp/userdata.log"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Type": "AWS::AutoScaling::LaunchConfiguration"
+        },
+        "LaunchConfigc1": {
+            "Properties": {
+                "EbsOptimized": "false",
+                "IamInstanceProfile": "rasingh-MarkLogic-role",
+                "ImageId": "ami-5bfcb131",
+                "InstanceType": "t2.small",
+                "KeyName": "rasingh-MarkLogic",
+                "SecurityGroups": [
+                    {
+                        "Ref": "ClusterSecurityGroup"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash\n",
+                                "echo \"<?php phpinfo(); ?>\" > /tmp/userdata.log"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Type": "AWS::AutoScaling::LaunchConfiguration"
+        },
+        "LaunchConfige1": {
+            "Properties": {
+                "EbsOptimized": "false",
+                "IamInstanceProfile": "rasingh-MarkLogic-role",
+                "ImageId": "ami-5bfcb131",
+                "InstanceType": "t2.small",
+                "KeyName": "rasingh-MarkLogic",
+                "SecurityGroups": [
+                    {
+                        "Ref": "ClusterSecurityGroup"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash\n",
+                                "echo \"<?php phpinfo(); ?>\" > /tmp/userdata.log"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Type": "AWS::AutoScaling::LaunchConfiguration"
+        },
+        "LoadBalancerSecurityGroup": {
+            "Properties": {
+                "GroupDescription": "Enable HTTP/XDBC access on the inbound port",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": 9000,
+                        "IpProtocol": "tcp",
+                        "ToPort": 9100
+                    }
+                ],
+                "VpcId": "vpc-6a80380e"
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        },
+        "MarkLogicConfigVolumeb1": {
+            "Properties": {
+                "AvailabilityZone": "us-east-1b",
+                "Encrypted": "false",
+                "Size": "10",
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-ConfigVolume-zone-b-instance-1"
+                    }
+                ],
+                "VolumeType": "gp2"
+            },
+            "Type": "AWS::EC2::Volume"
+        },
+        "MarkLogicConfigVolumec1": {
+            "Properties": {
+                "AvailabilityZone": "us-east-1c",
+                "Encrypted": "false",
+                "Size": "10",
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-ConfigVolume-zone-c-instance-1"
+                    }
+                ],
+                "VolumeType": "gp2"
+            },
+            "Type": "AWS::EC2::Volume"
+        },
+        "MarkLogicConfigVolumee1": {
+            "Properties": {
+                "AvailabilityZone": "us-east-1e",
+                "Encrypted": "false",
+                "Size": "10",
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-ConfigVolume-zone-e-instance-1"
+                    }
+                ],
+                "VolumeType": "gp2"
+            },
+            "Type": "AWS::EC2::Volume"
+        },
+        "MarkLogicDataVolumeb1": {
+            "Properties": {
+                "AvailabilityZone": "us-east-1b",
+                "Encrypted": "false",
+                "Size": "10",
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-DataVolume-zone-b-instance-1"
+                    }
+                ],
+                "VolumeType": "gp2"
+            },
+            "Type": "AWS::EC2::Volume"
+        },
+        "MarkLogicDataVolumec1": {
+            "Properties": {
+                "AvailabilityZone": "us-east-1c",
+                "Encrypted": "false",
+                "Size": "10",
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-DataVolume-zone-c-instance-1"
+                    }
+                ],
+                "VolumeType": "gp2"
+            },
+            "Type": "AWS::EC2::Volume"
+        },
+        "MarkLogicDataVolumee1": {
+            "Properties": {
+                "AvailabilityZone": "us-east-1e",
+                "Encrypted": "false",
+                "Size": "10",
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-DataVolume-zone-e-instance-1"
+                    }
+                ],
+                "VolumeType": "gp2"
+            },
+            "Type": "AWS::EC2::Volume"
+        },
+        "MarkLogicLoadBalancer": {
+            "Properties": {
+                "AppCookieStickinessPolicy": [
+                    {
+                        "CookieName": "SessionID",
+                        "PolicyName": "MLSession"
+                    }
+                ],
+                "ConnectionDrainingPolicy": {
+                    "Enabled": true,
+                    "Timeout": "60"
+                },
+                "CrossZone": "true",
+                "HealthCheck": {
+                    "HealthyThreshold": "3",
+                    "Interval": "10",
+                    "Target": "HTTP:7997/",
+                    "Timeout": "5",
+                    "UnhealthyThreshold": "5"
+                },
+                "Listeners": [
+                    {
+                        "InstancePort": "8000",
+                        "LoadBalancerPort": "8000",
+                        "PolicyNames": [
+                            "MLSession"
+                        ],
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort": "8001",
+                        "LoadBalancerPort": "8001",
+                        "PolicyNames": [
+                            "MLSession"
+                        ],
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort": "8002",
+                        "LoadBalancerPort": "8002",
+                        "PolicyNames": [
+                            "MLSession"
+                        ],
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort": "8003",
+                        "LoadBalancerPort": "8003",
+                        "PolicyNames": [
+                            "MLSession"
+                        ],
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort": "8004",
+                        "LoadBalancerPort": "8004",
+                        "PolicyNames": [
+                            "MLSession"
+                        ],
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort": "8005",
+                        "LoadBalancerPort": "8005",
+                        "PolicyNames": [
+                            "MLSession"
+                        ],
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort": "8006",
+                        "LoadBalancerPort": "8006",
+                        "PolicyNames": [
+                            "MLSession"
+                        ],
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort": "8007",
+                        "LoadBalancerPort": "8007",
+                        "PolicyNames": [
+                            "MLSession"
+                        ],
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort": "8008",
+                        "LoadBalancerPort": "8008",
+                        "PolicyNames": [
+                            "MLSession"
+                        ],
+                        "Protocol": "HTTP"
+                    }
+                ],
+                "SecurityGroups": [
+                    {
+                        "Ref": "LoadBalancerSecurityGroup"
+                    }
+                ],
+                "Subnets": [
+                    "subnet-c4e4deef",
+                    "subnet-1558a563",
+                    "subnet-e04ef1dd"
+                ],
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-LoadBalancer-zone-allzones-instance-None"
+                    }
+                ]
+            },
+            "Type": "AWS::ElasticLoadBalancing::LoadBalancer"
+        },
+        "MarkLogicNetworkInterfaceb1": {
+            "Properties": {
+                "Description": "For MarkLogic zone b instance 1",
+                "GroupSet": [
+                    {
+                        "Ref": "ClusterSecurityGroup"
+                    }
+                ],
+                "SubnetId": "subnet-c4e4deef",
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-NetworkInterface-zone-b-instance-1"
+                    }
+                ]
+            },
+            "Type": "AWS::EC2::NetworkInterface"
+        },
+        "MarkLogicNetworkInterfacec1": {
+            "Properties": {
+                "Description": "For MarkLogic zone c instance 1",
+                "GroupSet": [
+                    {
+                        "Ref": "ClusterSecurityGroup"
+                    }
+                ],
+                "SubnetId": "subnet-1558a563",
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-NetworkInterface-zone-c-instance-1"
+                    }
+                ]
+            },
+            "Type": "AWS::EC2::NetworkInterface"
+        },
+        "MarkLogicNetworkInterfacee1": {
+            "Properties": {
+                "Description": "For MarkLogic zone e instance 1",
+                "GroupSet": [
+                    {
+                        "Ref": "ClusterSecurityGroup"
+                    }
+                ],
+                "SubnetId": "subnet-e04ef1dd",
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-NetworkInterface-zone-e-instance-1"
+                    }
+                ]
+            },
+            "Type": "AWS::EC2::NetworkInterface"
+        }
+    }
+}
