@@ -150,7 +150,8 @@
                             "",
                             [
                                 "#!/bin/bash\n",
-                                "echo \"<?php phpinfo(); ?>\" > /tmp/userdata.log"
+                                "echo '{\"instanceNumber\": 1, \"region\": \"us-east-1\", \"zone\": \"b\"}' > /etc/instance.conf\n",
+                                "echo \"INFO generated /etc/instance.conf\""
                             ]
                         ]
                     }
@@ -176,7 +177,8 @@
                             "",
                             [
                                 "#!/bin/bash\n",
-                                "echo \"<?php phpinfo(); ?>\" > /tmp/userdata.log"
+                                "echo '{\"instanceNumber\": 1, \"region\": \"us-east-1\", \"zone\": \"c\"}' > /etc/instance.conf\n",
+                                "echo \"INFO generated /etc/instance.conf\""
                             ]
                         ]
                     }
@@ -202,7 +204,8 @@
                             "",
                             [
                                 "#!/bin/bash\n",
-                                "echo \"<?php phpinfo(); ?>\" > /tmp/userdata.log"
+                                "echo '{\"instanceNumber\": 1, \"region\": \"us-east-1\", \"zone\": \"e\"}' > /etc/instance.conf\n",
+                                "echo \"INFO generated /etc/instance.conf\""
                             ]
                         ]
                     }
@@ -234,6 +237,18 @@
                     {
                         "Key": "name",
                         "Value": "MarkLogic-ConfigVolume-zone-b-instance-1"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "b"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "ConfigVolume"
                     }
                 ],
                 "VolumeType": "gp2"
@@ -249,6 +264,18 @@
                     {
                         "Key": "name",
                         "Value": "MarkLogic-ConfigVolume-zone-c-instance-1"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "c"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "ConfigVolume"
                     }
                 ],
                 "VolumeType": "gp2"
@@ -264,6 +291,18 @@
                     {
                         "Key": "name",
                         "Value": "MarkLogic-ConfigVolume-zone-e-instance-1"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "e"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "ConfigVolume"
                     }
                 ],
                 "VolumeType": "gp2"
@@ -279,6 +318,18 @@
                     {
                         "Key": "name",
                         "Value": "MarkLogic-DataVolume-zone-b-instance-1"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "b"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "DataVolume"
                     }
                 ],
                 "VolumeType": "gp2"
@@ -294,6 +345,18 @@
                     {
                         "Key": "name",
                         "Value": "MarkLogic-DataVolume-zone-c-instance-1"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "c"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "DataVolume"
                     }
                 ],
                 "VolumeType": "gp2"
@@ -309,6 +372,18 @@
                     {
                         "Key": "name",
                         "Value": "MarkLogic-DataVolume-zone-e-instance-1"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "e"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "DataVolume"
                     }
                 ],
                 "VolumeType": "gp2"
@@ -423,6 +498,18 @@
                     {
                         "Key": "name",
                         "Value": "MarkLogic-LoadBalancer-zone-allzones-instance-None"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "allzones"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "None"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "LoadBalancer"
                     }
                 ]
             },
@@ -441,6 +528,18 @@
                     {
                         "Key": "name",
                         "Value": "MarkLogic-NetworkInterface-zone-b-instance-1"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "b"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "NetworkInterface"
                     }
                 ]
             },
@@ -459,6 +558,18 @@
                     {
                         "Key": "name",
                         "Value": "MarkLogic-NetworkInterface-zone-c-instance-1"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "c"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "NetworkInterface"
                     }
                 ]
             },
@@ -477,6 +588,18 @@
                     {
                         "Key": "name",
                         "Value": "MarkLogic-NetworkInterface-zone-e-instance-1"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "e"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "NetworkInterface"
                     }
                 ]
             },

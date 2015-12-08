@@ -24,7 +24,8 @@ if __name__ == '__main__':
     status = ""
     while "COMPLETE" not in status:
         status = conn.describe_stacks(stack_name_or_id=master)[0].stack_status
-        for event in conn.describe_stack_events(master, next_token):
-            next_token = event.event_id
+        events = conn.describe_stack_events(master, next_token)
+        for event in events:
             print event
+        next_token = events.next_token
         time.sleep(2)

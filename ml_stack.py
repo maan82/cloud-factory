@@ -35,6 +35,10 @@ def create_key_value_tags(config, base, az, instanceNumber):
     tags = []
     for tag in config["Tags"]:
         tags.append(ec2.Tag("name", tag + "-" + base + "-zone-" + az + "-instance-" + str(instanceNumber)))
+
+    tags.append(ec2.Tag("zone", az))
+    tags.append(ec2.Tag("instance", str(instanceNumber)))
+    tags.append(ec2.Tag("type", base))
     return tags
 
 
@@ -58,9 +62,11 @@ def create_launch_config(aws_config, config, az, instanceNumber, security_groups
         security_group_list.append(Ref(group))
 
     launch_configuration.SecurityGroups = security_group_list
+    instance_config = {"region":aws_config["Region"], "zone": az, "instanceNumber": instanceNumber}
     launch_configuration.UserData = Base64(Join('', [
         "#!/bin/bash\n",
-        "echo \"<?php phpinfo(); ?>\" > /tmp/userdata.log"
+        'echo \''+json.dumps(instance_config)+'\' > /etc/instance.conf\n',
+        "echo \"INFO generated /etc/instance.conf\""
     ]))
     return launch_configuration
 
