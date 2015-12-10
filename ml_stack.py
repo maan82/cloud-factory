@@ -63,10 +63,22 @@ def create_launch_config(aws_config, config, az, instanceNumber, security_groups
 
     launch_configuration.SecurityGroups = security_group_list
     instance_config = {"region":aws_config["Region"], "zone": az, "instanceNumber": instanceNumber}
+    with open ("attach_volumes.py", "r") as attach_volumes_file:
+        attach_volumes_file_string=attach_volumes_file.read()
+
+    with open ("format_volumes.py", "r") as format_volumes_file:
+        format_volumes_file_string=format_volumes_file.read()
+
     launch_configuration.UserData = Base64(Join('', [
         "#!/bin/bash\n",
         'echo \''+json.dumps(instance_config)+'\' > /etc/instance.conf\n',
-        "echo \"INFO generated /etc/instance.conf\""
+        "echo \"INFO generated /etc/instance.conf\"\n",
+        "mkdir -p /opt/custom-marklogic\n",
+        'cat > /opt/custom-marklogic/attach_volumes.py <<EOF\n'+attach_volumes_file_string+'\nEOF\n',
+        'cat > /opt/custom-marklogic/format_volumes.py <<EOF\n'+format_volumes_file_string+'\nEOF\n',
+        'python /opt/custom-marklogic/attach_volumes.py'
+
+
     ]))
     return launch_configuration
 
