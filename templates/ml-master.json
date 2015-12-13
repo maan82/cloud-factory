@@ -31,7 +31,7 @@
                 },
                 "LoadBalancerNames": [
                     {
-                        "Ref": "MarkLogicLoadBalancer"
+                        "Ref": "MarkLogicPvtLoadBalancer"
                     }
                 ],
                 "MaxSize": {
@@ -63,7 +63,7 @@
                 },
                 "LoadBalancerNames": [
                     {
-                        "Ref": "MarkLogicLoadBalancer"
+                        "Ref": "MarkLogicPvtLoadBalancer"
                     }
                 ],
                 "MaxSize": {
@@ -95,7 +95,7 @@
                 },
                 "LoadBalancerNames": [
                     {
-                        "Ref": "MarkLogicLoadBalancer"
+                        "Ref": "MarkLogicPvtLoadBalancer"
                     }
                 ],
                 "MaxSize": {
@@ -153,7 +153,7 @@
                                 "echo '{\"instanceNumber\": 1, \"region\": \"us-east-1\", \"zone\": \"b\"}' > /etc/instance.conf\n",
                                 "echo \"INFO generated /etc/instance.conf\"\n",
                                 "mkdir -p /opt/custom-marklogic\n",
-                                "cat > /opt/custom-marklogic/attach_volumes.py <<EOF\nimport boto\nimport json\nimport urllib2\nimport commands\nimport os\nimport time\n\nRETRY_COUNT=5\nRETRY_WAIT_MULTIPLIER=1\n\ndef print_command_output_status(command, status, output):\n    print \"INFO executed command : %s status : %s output : %s\" % (command, status, output)\n\ndef run_command(command):\n    status, output = commands.getstatusoutput(command)\n    print_command_output_status(command, status, output)\n\ndef attach_volume(volume, instance_id, device):\n    if volume.status == \"available\":\n        volume_attach_result = conn.attach_volume(volume.id, instance_id, device)\n        print \"Volume attach result : \"+str(volume_attach_result)\n        count = 0\n        while(count < RETRY_COUNT and not os.path.exists(device)):\n            seconds = count * RETRY_WAIT_MULTIPLIER + 1\n            print \"INFO waiting for device : %s to appear\" % (device)\n            print \"INFO sleeping for %s seconds\" % (seconds)\n            time.sleep(seconds)\n            count += 1\n\ndef attach_network_interface(network_interface, instance_id, device_index):\n    if network_interface.status == \"available\":\n        network_interface_attach_result = conn.attach_network_interface(network_interface.id, instance_id, device_index)\n        print \"Network Interface attach result : \"+str(network_interface_attach_result)\n\ndef mount_volume(device, mount_point):\n    if not os.path.isdir(mount_point):\n        run_command(\"sudo mkdir -p \" + mount_point)\n        run_command(\"sudo chown daemon:daemon \" + mount_point)\n    run_command(\"sudo mount \"+device+\" \"+mount_point)\n\ndef start_marklogic():\n    run_command(\"sudo service MarkLogic start\")\n\ndef stop_marklogic():\n    run_command(\"sudo service MarkLogic stop\")\n\n\nif __name__ == \"__main__\":\n    conn = boto.connect_ec2()\n    with open(\"/etc/instance.conf\") as aws_config_file:\n        instance_config = json.load(aws_config_file)\n\n    stop_marklogic()\n\n    config_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"ConfigVolume\"})[0]\n    print \"Found config volume : \"+str(config_volume)\n\n    data_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"DataVolume\"})[0]\n    print \"Found data volume : \"+str(data_volume)\n\n    network_interface = conn.get_all_network_interfaces(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"])})[0]\n    print \"Found network interface : \"+str(network_interface)\n\n    instance_id = urllib2.urlopen(\"http://169.254.169.254/latest/meta-data/instance-id\").read()\n    print \"Found instance id : \"+str(instance_id)\n\n    attach_volume(config_volume, instance_id, \"/dev/sdb\")\n    attach_volume(data_volume, instance_id, \"/dev/sdc\")\n    attach_network_interface(network_interface, instance_id, 1)\n    mount_volume(\"/dev/sdb\", \"/var/opt/MarkLogic\")\n    mount_volume(\"/dev/sdc\", \"/var/opt/data\")\n    start_marklogic()\n\n\n\nEOF\n",
+                                "cat > /opt/custom-marklogic/attach_volumes.py <<EOF\nimport boto\nimport json\nimport urllib2\nimport commands\nimport os\nimport time\n\nfrom boto.exception import EC2ResponseError\n\nRETRY_COUNT=10\nRETRY_WAIT_MULTIPLIER=1\n\ndef print_command_output_status(command, status, output):\n    print \"INFO executed command : %s status : %s output : %s\" % (command, status, output)\n\ndef run_command(command):\n    status, output = commands.getstatusoutput(command)\n    print_command_output_status(command, status, output)\n    return (status, output)\n\ndef attach_volume(volume, instance_id, device):\n    count = 0\n    while(count < RETRY_COUNT and not os.path.exists(device)):\n        print \"INFO Volume status : %s\" % (volume.status)\n        if volume.status == \"available\":\n            try:\n                volume_attach_result = conn.attach_volume(volume.id, instance_id, device)\n                time.sleep(2)\n                print \"INFO Volume attach result : \"+str(volume_attach_result)\n            except EC2ResponseError as e:\n                print e\n        seconds = count * RETRY_WAIT_MULTIPLIER + 1\n        print \"INFO waiting for device : %s to appear\" % (device)\n        print \"INFO sleeping for %s seconds\" % (seconds)\n        time.sleep(seconds)\n        count += 1\n\ndef attach_network_interface(network_interface, instance_id, device_index):\n    count = 0\n    while(count < RETRY_COUNT and int(run_command(\"ifconfig | grep 'eth' |wc -l\")[1]) < 2):\n        if network_interface.status == \"available\":\n            try:\n                network_interface_attach_result = conn.attach_network_interface(network_interface.id, instance_id, device_index)\n                time.sleep(2)\n                print \"Network Interface attach result : \"+str(network_interface_attach_result)\n            except EC2ResponseError as e:\n                print e\n        seconds = count * RETRY_WAIT_MULTIPLIER + 1\n        print \"INFO waiting for network interface to appear\"\n        print \"INFO sleeping for %s seconds\" % (seconds)\n        time.sleep(seconds)\n        count += 1\n\n\ndef mount_volume(device, mount_point):\n    if not os.path.isdir(mount_point):\n        run_command(\"sudo mkdir -p \" + mount_point)\n        run_command(\"sudo chown daemon:daemon \" + mount_point)\n    run_command(\"sudo mount \"+device+\" \"+mount_point)\n\ndef start_marklogic():\n    run_command(\"sudo service MarkLogic start\")\n\ndef stop_marklogic():\n    run_command(\"sudo service MarkLogic stop\")\n\n\nif __name__ == \"__main__\":\n    conn = boto.connect_ec2()\n    with open(\"/etc/instance.conf\") as aws_config_file:\n        instance_config = json.load(aws_config_file)\n\n    stop_marklogic()\n\n    config_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"ConfigVolume\"})[0]\n    print \"Found config volume : \"+str(config_volume)\n\n    data_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"DataVolume\"})[0]\n    print \"Found data volume : \"+str(data_volume)\n\n    network_interface = conn.get_all_network_interfaces(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"])})[0]\n    print \"Found network interface : \"+str(network_interface)\n\n    instance_id = urllib2.urlopen(\"http://169.254.169.254/latest/meta-data/instance-id\").read()\n    print \"Found instance id : \"+str(instance_id)\n\n    attach_volume(config_volume, instance_id, \"/dev/sdb\")\n    attach_volume(data_volume, instance_id, \"/dev/sdc\")\n    attach_network_interface(network_interface, instance_id, 1)\n    mount_volume(\"/dev/sdb\", \"/var/opt/MarkLogic\")\n    mount_volume(\"/dev/sdc\", \"/var/opt/data\")\n    start_marklogic()\n\n\n\nEOF\n",
                                 "cat > /opt/custom-marklogic/format_volumes.py <<EOF\nimport commands\nimport boto\nimport json\n\ndef format_volume(device):\n    file_system_status_command = \"sudo file -s \" + device\n    status, output = commands.getstatusoutput(file_system_status_command)\n    if status == 0:\n        path = \"/\"+\"/\".join([device.split(\"/\")[1],output.split()[-1]])\n        status, output = commands.getstatusoutput(\"sudo file -s \"+path)\n        if status == 0 and output == path+\": data\":\n            status, output = commands.getstatusoutput(\"sudo mkfs -t ext4 \"+path)\n            print output\n            return path\n        else:\n            print \"Volume %s is already formatted status : %s output : %s \" % (device, status, output)\n    else:\n        print \"Exiting: non zero status of command '%s' status : %s  output : %s\" % (file_system_status_command, status, output)\n\nif __name__ == '__main__':\n    conn = boto.connect_ec2()\n    with open('/etc/instance.conf') as aws_config_file:\n        instance_config = json.load(aws_config_file)\n\n    config_volume = conn.get_all_volumes(None, filters={'tag:aws:cloudformation:stack-name': 'rasingh-MarkLogic-ml-master', 'tag:zone': instance_config[\"zone\"], 'tag:instance': str(instance_config[\"instanceNumber\"]), 'tag:type': \"ConfigVolume\"})[0]\n    print \"Found config volume : \"+str(config_volume)\n\n    data_volume = conn.get_all_volumes(None, filters={'tag:aws:cloudformation:stack-name': 'rasingh-MarkLogic-ml-master', 'tag:zone': instance_config[\"zone\"], 'tag:instance': str(instance_config[\"instanceNumber\"]), 'tag:type': \"DataVolume\"})[0]\n    print \"Found data volume : \"+str(data_volume)\n\n    format_volume(config_volume.attach_data.device)\n    format_volume(data_volume.attach_data.device)\n\n\nEOF\n",
                                 "python /opt/custom-marklogic/attach_volumes.py"
                             ]
@@ -184,7 +184,7 @@
                                 "echo '{\"instanceNumber\": 1, \"region\": \"us-east-1\", \"zone\": \"c\"}' > /etc/instance.conf\n",
                                 "echo \"INFO generated /etc/instance.conf\"\n",
                                 "mkdir -p /opt/custom-marklogic\n",
-                                "cat > /opt/custom-marklogic/attach_volumes.py <<EOF\nimport boto\nimport json\nimport urllib2\nimport commands\nimport os\nimport time\n\nRETRY_COUNT=5\nRETRY_WAIT_MULTIPLIER=1\n\ndef print_command_output_status(command, status, output):\n    print \"INFO executed command : %s status : %s output : %s\" % (command, status, output)\n\ndef run_command(command):\n    status, output = commands.getstatusoutput(command)\n    print_command_output_status(command, status, output)\n\ndef attach_volume(volume, instance_id, device):\n    if volume.status == \"available\":\n        volume_attach_result = conn.attach_volume(volume.id, instance_id, device)\n        print \"Volume attach result : \"+str(volume_attach_result)\n        count = 0\n        while(count < RETRY_COUNT and not os.path.exists(device)):\n            seconds = count * RETRY_WAIT_MULTIPLIER + 1\n            print \"INFO waiting for device : %s to appear\" % (device)\n            print \"INFO sleeping for %s seconds\" % (seconds)\n            time.sleep(seconds)\n            count += 1\n\ndef attach_network_interface(network_interface, instance_id, device_index):\n    if network_interface.status == \"available\":\n        network_interface_attach_result = conn.attach_network_interface(network_interface.id, instance_id, device_index)\n        print \"Network Interface attach result : \"+str(network_interface_attach_result)\n\ndef mount_volume(device, mount_point):\n    if not os.path.isdir(mount_point):\n        run_command(\"sudo mkdir -p \" + mount_point)\n        run_command(\"sudo chown daemon:daemon \" + mount_point)\n    run_command(\"sudo mount \"+device+\" \"+mount_point)\n\ndef start_marklogic():\n    run_command(\"sudo service MarkLogic start\")\n\ndef stop_marklogic():\n    run_command(\"sudo service MarkLogic stop\")\n\n\nif __name__ == \"__main__\":\n    conn = boto.connect_ec2()\n    with open(\"/etc/instance.conf\") as aws_config_file:\n        instance_config = json.load(aws_config_file)\n\n    stop_marklogic()\n\n    config_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"ConfigVolume\"})[0]\n    print \"Found config volume : \"+str(config_volume)\n\n    data_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"DataVolume\"})[0]\n    print \"Found data volume : \"+str(data_volume)\n\n    network_interface = conn.get_all_network_interfaces(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"])})[0]\n    print \"Found network interface : \"+str(network_interface)\n\n    instance_id = urllib2.urlopen(\"http://169.254.169.254/latest/meta-data/instance-id\").read()\n    print \"Found instance id : \"+str(instance_id)\n\n    attach_volume(config_volume, instance_id, \"/dev/sdb\")\n    attach_volume(data_volume, instance_id, \"/dev/sdc\")\n    attach_network_interface(network_interface, instance_id, 1)\n    mount_volume(\"/dev/sdb\", \"/var/opt/MarkLogic\")\n    mount_volume(\"/dev/sdc\", \"/var/opt/data\")\n    start_marklogic()\n\n\n\nEOF\n",
+                                "cat > /opt/custom-marklogic/attach_volumes.py <<EOF\nimport boto\nimport json\nimport urllib2\nimport commands\nimport os\nimport time\n\nfrom boto.exception import EC2ResponseError\n\nRETRY_COUNT=10\nRETRY_WAIT_MULTIPLIER=1\n\ndef print_command_output_status(command, status, output):\n    print \"INFO executed command : %s status : %s output : %s\" % (command, status, output)\n\ndef run_command(command):\n    status, output = commands.getstatusoutput(command)\n    print_command_output_status(command, status, output)\n    return (status, output)\n\ndef attach_volume(volume, instance_id, device):\n    count = 0\n    while(count < RETRY_COUNT and not os.path.exists(device)):\n        print \"INFO Volume status : %s\" % (volume.status)\n        if volume.status == \"available\":\n            try:\n                volume_attach_result = conn.attach_volume(volume.id, instance_id, device)\n                time.sleep(2)\n                print \"INFO Volume attach result : \"+str(volume_attach_result)\n            except EC2ResponseError as e:\n                print e\n        seconds = count * RETRY_WAIT_MULTIPLIER + 1\n        print \"INFO waiting for device : %s to appear\" % (device)\n        print \"INFO sleeping for %s seconds\" % (seconds)\n        time.sleep(seconds)\n        count += 1\n\ndef attach_network_interface(network_interface, instance_id, device_index):\n    count = 0\n    while(count < RETRY_COUNT and int(run_command(\"ifconfig | grep 'eth' |wc -l\")[1]) < 2):\n        if network_interface.status == \"available\":\n            try:\n                network_interface_attach_result = conn.attach_network_interface(network_interface.id, instance_id, device_index)\n                time.sleep(2)\n                print \"Network Interface attach result : \"+str(network_interface_attach_result)\n            except EC2ResponseError as e:\n                print e\n        seconds = count * RETRY_WAIT_MULTIPLIER + 1\n        print \"INFO waiting for network interface to appear\"\n        print \"INFO sleeping for %s seconds\" % (seconds)\n        time.sleep(seconds)\n        count += 1\n\n\ndef mount_volume(device, mount_point):\n    if not os.path.isdir(mount_point):\n        run_command(\"sudo mkdir -p \" + mount_point)\n        run_command(\"sudo chown daemon:daemon \" + mount_point)\n    run_command(\"sudo mount \"+device+\" \"+mount_point)\n\ndef start_marklogic():\n    run_command(\"sudo service MarkLogic start\")\n\ndef stop_marklogic():\n    run_command(\"sudo service MarkLogic stop\")\n\n\nif __name__ == \"__main__\":\n    conn = boto.connect_ec2()\n    with open(\"/etc/instance.conf\") as aws_config_file:\n        instance_config = json.load(aws_config_file)\n\n    stop_marklogic()\n\n    config_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"ConfigVolume\"})[0]\n    print \"Found config volume : \"+str(config_volume)\n\n    data_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"DataVolume\"})[0]\n    print \"Found data volume : \"+str(data_volume)\n\n    network_interface = conn.get_all_network_interfaces(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"])})[0]\n    print \"Found network interface : \"+str(network_interface)\n\n    instance_id = urllib2.urlopen(\"http://169.254.169.254/latest/meta-data/instance-id\").read()\n    print \"Found instance id : \"+str(instance_id)\n\n    attach_volume(config_volume, instance_id, \"/dev/sdb\")\n    attach_volume(data_volume, instance_id, \"/dev/sdc\")\n    attach_network_interface(network_interface, instance_id, 1)\n    mount_volume(\"/dev/sdb\", \"/var/opt/MarkLogic\")\n    mount_volume(\"/dev/sdc\", \"/var/opt/data\")\n    start_marklogic()\n\n\n\nEOF\n",
                                 "cat > /opt/custom-marklogic/format_volumes.py <<EOF\nimport commands\nimport boto\nimport json\n\ndef format_volume(device):\n    file_system_status_command = \"sudo file -s \" + device\n    status, output = commands.getstatusoutput(file_system_status_command)\n    if status == 0:\n        path = \"/\"+\"/\".join([device.split(\"/\")[1],output.split()[-1]])\n        status, output = commands.getstatusoutput(\"sudo file -s \"+path)\n        if status == 0 and output == path+\": data\":\n            status, output = commands.getstatusoutput(\"sudo mkfs -t ext4 \"+path)\n            print output\n            return path\n        else:\n            print \"Volume %s is already formatted status : %s output : %s \" % (device, status, output)\n    else:\n        print \"Exiting: non zero status of command '%s' status : %s  output : %s\" % (file_system_status_command, status, output)\n\nif __name__ == '__main__':\n    conn = boto.connect_ec2()\n    with open('/etc/instance.conf') as aws_config_file:\n        instance_config = json.load(aws_config_file)\n\n    config_volume = conn.get_all_volumes(None, filters={'tag:aws:cloudformation:stack-name': 'rasingh-MarkLogic-ml-master', 'tag:zone': instance_config[\"zone\"], 'tag:instance': str(instance_config[\"instanceNumber\"]), 'tag:type': \"ConfigVolume\"})[0]\n    print \"Found config volume : \"+str(config_volume)\n\n    data_volume = conn.get_all_volumes(None, filters={'tag:aws:cloudformation:stack-name': 'rasingh-MarkLogic-ml-master', 'tag:zone': instance_config[\"zone\"], 'tag:instance': str(instance_config[\"instanceNumber\"]), 'tag:type': \"DataVolume\"})[0]\n    print \"Found data volume : \"+str(data_volume)\n\n    format_volume(config_volume.attach_data.device)\n    format_volume(data_volume.attach_data.device)\n\n\nEOF\n",
                                 "python /opt/custom-marklogic/attach_volumes.py"
                             ]
@@ -215,7 +215,7 @@
                                 "echo '{\"instanceNumber\": 1, \"region\": \"us-east-1\", \"zone\": \"e\"}' > /etc/instance.conf\n",
                                 "echo \"INFO generated /etc/instance.conf\"\n",
                                 "mkdir -p /opt/custom-marklogic\n",
-                                "cat > /opt/custom-marklogic/attach_volumes.py <<EOF\nimport boto\nimport json\nimport urllib2\nimport commands\nimport os\nimport time\n\nRETRY_COUNT=5\nRETRY_WAIT_MULTIPLIER=1\n\ndef print_command_output_status(command, status, output):\n    print \"INFO executed command : %s status : %s output : %s\" % (command, status, output)\n\ndef run_command(command):\n    status, output = commands.getstatusoutput(command)\n    print_command_output_status(command, status, output)\n\ndef attach_volume(volume, instance_id, device):\n    if volume.status == \"available\":\n        volume_attach_result = conn.attach_volume(volume.id, instance_id, device)\n        print \"Volume attach result : \"+str(volume_attach_result)\n        count = 0\n        while(count < RETRY_COUNT and not os.path.exists(device)):\n            seconds = count * RETRY_WAIT_MULTIPLIER + 1\n            print \"INFO waiting for device : %s to appear\" % (device)\n            print \"INFO sleeping for %s seconds\" % (seconds)\n            time.sleep(seconds)\n            count += 1\n\ndef attach_network_interface(network_interface, instance_id, device_index):\n    if network_interface.status == \"available\":\n        network_interface_attach_result = conn.attach_network_interface(network_interface.id, instance_id, device_index)\n        print \"Network Interface attach result : \"+str(network_interface_attach_result)\n\ndef mount_volume(device, mount_point):\n    if not os.path.isdir(mount_point):\n        run_command(\"sudo mkdir -p \" + mount_point)\n        run_command(\"sudo chown daemon:daemon \" + mount_point)\n    run_command(\"sudo mount \"+device+\" \"+mount_point)\n\ndef start_marklogic():\n    run_command(\"sudo service MarkLogic start\")\n\ndef stop_marklogic():\n    run_command(\"sudo service MarkLogic stop\")\n\n\nif __name__ == \"__main__\":\n    conn = boto.connect_ec2()\n    with open(\"/etc/instance.conf\") as aws_config_file:\n        instance_config = json.load(aws_config_file)\n\n    stop_marklogic()\n\n    config_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"ConfigVolume\"})[0]\n    print \"Found config volume : \"+str(config_volume)\n\n    data_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"DataVolume\"})[0]\n    print \"Found data volume : \"+str(data_volume)\n\n    network_interface = conn.get_all_network_interfaces(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"])})[0]\n    print \"Found network interface : \"+str(network_interface)\n\n    instance_id = urllib2.urlopen(\"http://169.254.169.254/latest/meta-data/instance-id\").read()\n    print \"Found instance id : \"+str(instance_id)\n\n    attach_volume(config_volume, instance_id, \"/dev/sdb\")\n    attach_volume(data_volume, instance_id, \"/dev/sdc\")\n    attach_network_interface(network_interface, instance_id, 1)\n    mount_volume(\"/dev/sdb\", \"/var/opt/MarkLogic\")\n    mount_volume(\"/dev/sdc\", \"/var/opt/data\")\n    start_marklogic()\n\n\n\nEOF\n",
+                                "cat > /opt/custom-marklogic/attach_volumes.py <<EOF\nimport boto\nimport json\nimport urllib2\nimport commands\nimport os\nimport time\n\nfrom boto.exception import EC2ResponseError\n\nRETRY_COUNT=10\nRETRY_WAIT_MULTIPLIER=1\n\ndef print_command_output_status(command, status, output):\n    print \"INFO executed command : %s status : %s output : %s\" % (command, status, output)\n\ndef run_command(command):\n    status, output = commands.getstatusoutput(command)\n    print_command_output_status(command, status, output)\n    return (status, output)\n\ndef attach_volume(volume, instance_id, device):\n    count = 0\n    while(count < RETRY_COUNT and not os.path.exists(device)):\n        print \"INFO Volume status : %s\" % (volume.status)\n        if volume.status == \"available\":\n            try:\n                volume_attach_result = conn.attach_volume(volume.id, instance_id, device)\n                time.sleep(2)\n                print \"INFO Volume attach result : \"+str(volume_attach_result)\n            except EC2ResponseError as e:\n                print e\n        seconds = count * RETRY_WAIT_MULTIPLIER + 1\n        print \"INFO waiting for device : %s to appear\" % (device)\n        print \"INFO sleeping for %s seconds\" % (seconds)\n        time.sleep(seconds)\n        count += 1\n\ndef attach_network_interface(network_interface, instance_id, device_index):\n    count = 0\n    while(count < RETRY_COUNT and int(run_command(\"ifconfig | grep 'eth' |wc -l\")[1]) < 2):\n        if network_interface.status == \"available\":\n            try:\n                network_interface_attach_result = conn.attach_network_interface(network_interface.id, instance_id, device_index)\n                time.sleep(2)\n                print \"Network Interface attach result : \"+str(network_interface_attach_result)\n            except EC2ResponseError as e:\n                print e\n        seconds = count * RETRY_WAIT_MULTIPLIER + 1\n        print \"INFO waiting for network interface to appear\"\n        print \"INFO sleeping for %s seconds\" % (seconds)\n        time.sleep(seconds)\n        count += 1\n\n\ndef mount_volume(device, mount_point):\n    if not os.path.isdir(mount_point):\n        run_command(\"sudo mkdir -p \" + mount_point)\n        run_command(\"sudo chown daemon:daemon \" + mount_point)\n    run_command(\"sudo mount \"+device+\" \"+mount_point)\n\ndef start_marklogic():\n    run_command(\"sudo service MarkLogic start\")\n\ndef stop_marklogic():\n    run_command(\"sudo service MarkLogic stop\")\n\n\nif __name__ == \"__main__\":\n    conn = boto.connect_ec2()\n    with open(\"/etc/instance.conf\") as aws_config_file:\n        instance_config = json.load(aws_config_file)\n\n    stop_marklogic()\n\n    config_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"ConfigVolume\"})[0]\n    print \"Found config volume : \"+str(config_volume)\n\n    data_volume = conn.get_all_volumes(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"]), \"tag:type\": \"DataVolume\"})[0]\n    print \"Found data volume : \"+str(data_volume)\n\n    network_interface = conn.get_all_network_interfaces(None, filters={\"tag:aws:cloudformation:stack-name\": \"rasingh-MarkLogic-ml-master\", \"tag:zone\": instance_config[\"zone\"], \"tag:instance\": str(instance_config[\"instanceNumber\"])})[0]\n    print \"Found network interface : \"+str(network_interface)\n\n    instance_id = urllib2.urlopen(\"http://169.254.169.254/latest/meta-data/instance-id\").read()\n    print \"Found instance id : \"+str(instance_id)\n\n    attach_volume(config_volume, instance_id, \"/dev/sdb\")\n    attach_volume(data_volume, instance_id, \"/dev/sdc\")\n    attach_network_interface(network_interface, instance_id, 1)\n    mount_volume(\"/dev/sdb\", \"/var/opt/MarkLogic\")\n    mount_volume(\"/dev/sdc\", \"/var/opt/data\")\n    start_marklogic()\n\n\n\nEOF\n",
                                 "cat > /opt/custom-marklogic/format_volumes.py <<EOF\nimport commands\nimport boto\nimport json\n\ndef format_volume(device):\n    file_system_status_command = \"sudo file -s \" + device\n    status, output = commands.getstatusoutput(file_system_status_command)\n    if status == 0:\n        path = \"/\"+\"/\".join([device.split(\"/\")[1],output.split()[-1]])\n        status, output = commands.getstatusoutput(\"sudo file -s \"+path)\n        if status == 0 and output == path+\": data\":\n            status, output = commands.getstatusoutput(\"sudo mkfs -t ext4 \"+path)\n            print output\n            return path\n        else:\n            print \"Volume %s is already formatted status : %s output : %s \" % (device, status, output)\n    else:\n        print \"Exiting: non zero status of command '%s' status : %s  output : %s\" % (file_system_status_command, status, output)\n\nif __name__ == '__main__':\n    conn = boto.connect_ec2()\n    with open('/etc/instance.conf') as aws_config_file:\n        instance_config = json.load(aws_config_file)\n\n    config_volume = conn.get_all_volumes(None, filters={'tag:aws:cloudformation:stack-name': 'rasingh-MarkLogic-ml-master', 'tag:zone': instance_config[\"zone\"], 'tag:instance': str(instance_config[\"instanceNumber\"]), 'tag:type': \"ConfigVolume\"})[0]\n    print \"Found config volume : \"+str(config_volume)\n\n    data_volume = conn.get_all_volumes(None, filters={'tag:aws:cloudformation:stack-name': 'rasingh-MarkLogic-ml-master', 'tag:zone': instance_config[\"zone\"], 'tag:instance': str(instance_config[\"instanceNumber\"]), 'tag:type': \"DataVolume\"})[0]\n    print \"Found data volume : \"+str(data_volume)\n\n    format_volume(config_volume.attach_data.device)\n    format_volume(data_volume.attach_data.device)\n\n\nEOF\n",
                                 "python /opt/custom-marklogic/attach_volumes.py"
                             ]
@@ -233,7 +233,7 @@
                         "CidrIp": "0.0.0.0/0",
                         "FromPort": 9000,
                         "IpProtocol": "tcp",
-                        "ToPort": 9100
+                        "ToPort": 9000
                     }
                 ],
                 "VpcId": "vpc-6a80380e"
@@ -402,131 +402,6 @@
             },
             "Type": "AWS::EC2::Volume"
         },
-        "MarkLogicLoadBalancer": {
-            "Properties": {
-                "AppCookieStickinessPolicy": [
-                    {
-                        "CookieName": "SessionID",
-                        "PolicyName": "MLSession"
-                    }
-                ],
-                "ConnectionDrainingPolicy": {
-                    "Enabled": true,
-                    "Timeout": "60"
-                },
-                "CrossZone": "true",
-                "HealthCheck": {
-                    "HealthyThreshold": "3",
-                    "Interval": "10",
-                    "Target": "HTTP:7997/",
-                    "Timeout": "5",
-                    "UnhealthyThreshold": "5"
-                },
-                "Listeners": [
-                    {
-                        "InstancePort": "8000",
-                        "LoadBalancerPort": "8000",
-                        "PolicyNames": [
-                            "MLSession"
-                        ],
-                        "Protocol": "HTTP"
-                    },
-                    {
-                        "InstancePort": "8001",
-                        "LoadBalancerPort": "8001",
-                        "PolicyNames": [
-                            "MLSession"
-                        ],
-                        "Protocol": "HTTP"
-                    },
-                    {
-                        "InstancePort": "8002",
-                        "LoadBalancerPort": "8002",
-                        "PolicyNames": [
-                            "MLSession"
-                        ],
-                        "Protocol": "HTTP"
-                    },
-                    {
-                        "InstancePort": "8003",
-                        "LoadBalancerPort": "8003",
-                        "PolicyNames": [
-                            "MLSession"
-                        ],
-                        "Protocol": "HTTP"
-                    },
-                    {
-                        "InstancePort": "8004",
-                        "LoadBalancerPort": "8004",
-                        "PolicyNames": [
-                            "MLSession"
-                        ],
-                        "Protocol": "HTTP"
-                    },
-                    {
-                        "InstancePort": "8005",
-                        "LoadBalancerPort": "8005",
-                        "PolicyNames": [
-                            "MLSession"
-                        ],
-                        "Protocol": "HTTP"
-                    },
-                    {
-                        "InstancePort": "8006",
-                        "LoadBalancerPort": "8006",
-                        "PolicyNames": [
-                            "MLSession"
-                        ],
-                        "Protocol": "HTTP"
-                    },
-                    {
-                        "InstancePort": "8007",
-                        "LoadBalancerPort": "8007",
-                        "PolicyNames": [
-                            "MLSession"
-                        ],
-                        "Protocol": "HTTP"
-                    },
-                    {
-                        "InstancePort": "8008",
-                        "LoadBalancerPort": "8008",
-                        "PolicyNames": [
-                            "MLSession"
-                        ],
-                        "Protocol": "HTTP"
-                    }
-                ],
-                "SecurityGroups": [
-                    {
-                        "Ref": "LoadBalancerSecurityGroup"
-                    }
-                ],
-                "Subnets": [
-                    "subnet-c4e4deef",
-                    "subnet-1558a563",
-                    "subnet-e04ef1dd"
-                ],
-                "Tags": [
-                    {
-                        "Key": "name",
-                        "Value": "MarkLogic-LoadBalancer-zone-allzones-instance-None"
-                    },
-                    {
-                        "Key": "zone",
-                        "Value": "allzones"
-                    },
-                    {
-                        "Key": "instance",
-                        "Value": "None"
-                    },
-                    {
-                        "Key": "type",
-                        "Value": "LoadBalancer"
-                    }
-                ]
-            },
-            "Type": "AWS::ElasticLoadBalancing::LoadBalancer"
-        },
         "MarkLogicNetworkInterfaceb1": {
             "Properties": {
                 "Description": "For MarkLogic zone b instance 1",
@@ -616,6 +491,74 @@
                 ]
             },
             "Type": "AWS::EC2::NetworkInterface"
+        },
+        "MarkLogicPvtLoadBalancer": {
+            "Properties": {
+                "AccessLoggingPolicy": {
+                    "EmitInterval": "5",
+                    "Enabled": true,
+                    "S3BucketName": "s3://sandbox-dev-bucket/rasingh/load-balancer/475882391631",
+                    "S3BucketPrefix": "ml-master"
+                },
+                "AppCookieStickinessPolicy": [
+                    {
+                        "CookieName": "SessionID",
+                        "PolicyName": "MLSession"
+                    }
+                ],
+                "ConnectionDrainingPolicy": {
+                    "Enabled": true,
+                    "Timeout": "60"
+                },
+                "CrossZone": "true",
+                "HealthCheck": {
+                    "HealthyThreshold": "3",
+                    "Interval": "10",
+                    "Target": "HTTP:7997/",
+                    "Timeout": "5",
+                    "UnhealthyThreshold": "5"
+                },
+                "Listeners": [
+                    {
+                        "InstancePort": "9000",
+                        "LoadBalancerPort": "9000",
+                        "PolicyNames": [
+                            "MLSession"
+                        ],
+                        "Protocol": "HTTP"
+                    }
+                ],
+                "Scheme": "internal",
+                "SecurityGroups": [
+                    {
+                        "Ref": "LoadBalancerSecurityGroup"
+                    }
+                ],
+                "Subnets": [
+                    "subnet-c4e4deef",
+                    "subnet-1558a563",
+                    "subnet-e04ef1dd"
+                ],
+                "Tags": [
+                    {
+                        "Key": "name",
+                        "Value": "MarkLogic-LoadBalancer-zone-allzones-instance-None"
+                    },
+                    {
+                        "Key": "zone",
+                        "Value": "allzones"
+                    },
+                    {
+                        "Key": "instance",
+                        "Value": "None"
+                    },
+                    {
+                        "Key": "type",
+                        "Value": "LoadBalancer"
+                    }
+                ]
+            },
+            "Type": "AWS::ElasticLoadBalancing::LoadBalancer"
         }
     }
 }

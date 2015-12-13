@@ -1,30 +1,50 @@
 # /usr/bin/env python
 
-"""MarkLogic CloudFormation template generator.
+"""Delete cloud formation stack.
 
 Usage:
-    delete_stack.py [-v] [-f CLOUD_FORMATION_TEMPLATE_FILE]
+    delete_stack.py [-v] -f CONFIGURATION_FILE ENV
 
 Options:
-    -f CONFIGURATION_FILE       MarkLogic cluster Configuration file [default: conf/ml_master.json]
+    -f <file> cluster configuration file
 """
 
 import boto
 import time
+from docopt import docopt
+import logging
+import json
+
+def get_name_prefix():
+    return env + config["Type"] + config["Component"]
 
 if __name__ == '__main__':
+    arguments = docopt(__doc__)
+
+    env = arguments["ENV"].lower()
+
+    with open('conf/aws_config.json') as aws_config_file:
+        aws_config = json.load(aws_config_file)
+
+    with open(arguments["-f"]) as config_file:
+        config = json.load(config_file)
+
 
     conn = boto.connect_cloudformation()
-    master = "rasingh-MarkLogic-ml-master"
-    with open ("templates/ml-master.json", "r") as myfile:
-        template=myfile.read()
-        stack = conn.create_stack(stack_name=master, template_body=template,
-                                  parameters=[("MaxSize", "1"), ("MinSize", "1")], tags={"name": master})
+    stack_name = get_name_prefix()
+
+    stack = conn.delete_stack(stack_name)
     next_token = ""
     status = ""
+
     while "COMPLETE" not in status:
-        status = conn.describe_stacks(stack_name_or_id=master)[0].stack_status
-        for event in conn.describe_stack_events(master, next_token):
-            next_token = event.event_id
-            print event
-        time.sleep(2)
+        try:
+            status = conn.describe_stacks(stack_name_or_id=stack_name)[0].stack_status
+            for  event in conn.describe_stack_events(stack_name, next_token):
+                next_token = event.event_id
+                print event
+            time.sleep(5)
+        except boto.exception.BotoServerError as e:
+            print(e)
+            status = "COMPLETE"
+

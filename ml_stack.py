@@ -3,24 +3,27 @@
 """MarkLogic CloudFormation template generator.
 
 Usage:
-    ml_stack.py [-v] [-f CONFIGURATION_FILE]
+    ml_stack.py [-v] -f CONFIGURATION_FILE ENV
 
 Options:
-    -f CONFIGURATION_FILE       MarkLogic cluster Configuration file [default: conf/ml_master.json]
+    -f <file> cluster configuration file
 """
 from docopt import docopt
-from troposphere import Ref, Template, Parameter
+from troposphere import Ref, Template, Parameter, GetAtt
 import troposphere.ec2 as ec2
 import troposphere.elasticloadbalancing as elb
 import troposphere.autoscaling as autoscaling
 import json
 import logging
-import os
 from troposphere import Base64, Join
+import boto
 
+
+def get_name_prefix():
+    return env + config["Type"] + config["Component"]
 
 def create_name(base, az, instanceNumber):
-    return base + az + str(instanceNumber)
+    return get_name_prefix() + base + az + str(instanceNumber)
 
 
 def get_subnet_id(aws_config, az):
@@ -33,9 +36,10 @@ def get_private_subnets(aws_config):
 
 def create_key_value_tags(config, base, az, instanceNumber):
     tags = []
-    for tag in config["Tags"]:
-        tags.append(ec2.Tag("name", tag + "-" + base + "-zone-" + az + "-instance-" + str(instanceNumber)))
-
+    tags.append(ec2.Tag("name", get_name_prefix() + "-" + base + "-zone-" + az + "-instance-" + str(instanceNumber)))
+    tags.append(ec2.Tag("env", env))
+    tags.append(ec2.Tag("componentType", config["Type"]))
+    tags.append(ec2.Tag("component", config["Component"]))
     tags.append(ec2.Tag("zone", az))
     tags.append(ec2.Tag("instance", str(instanceNumber)))
     tags.append(ec2.Tag("type", base))
@@ -44,9 +48,7 @@ def create_key_value_tags(config, base, az, instanceNumber):
 
 def create_autoscalling_tags(config, base, az, instanceNumber):
     tags = []
-    for tag in config["Tags"]:
-        tags.append(
-            autoscaling.Tag("name", tag + "-" + base + "-zone-" + az + "-instance-" + str(instanceNumber), True))
+    tags.append(autoscaling.Tag("name", get_name_prefix() + "-" + base + "-zone-" + az + "-instance-" + str(instanceNumber), True))
     return tags
 
 
@@ -62,7 +64,9 @@ def create_launch_config(aws_config, config, az, instanceNumber, security_groups
         security_group_list.append(Ref(group))
 
     launch_configuration.SecurityGroups = security_group_list
-    instance_config = {"region":aws_config["Region"], "zone": az, "instanceNumber": instanceNumber}
+    instance_config = {"stack-name": get_name_prefix(), "region": aws_config["Region"], "env": env, "componentType": config["Type"],
+                       "component": config["Component"], "zone": az, "instanceNumber": instanceNumber,
+                       "ConfigVolumes": config["ConfigVolumes"], "DataVolumes": config["DataVolumes"]}
     with open ("attach_volumes.py", "r") as attach_volumes_file:
         attach_volumes_file_string=attach_volumes_file.read()
 
@@ -84,7 +88,7 @@ def create_launch_config(aws_config, config, az, instanceNumber, security_groups
 
 
 def create_autoscalling_group(aws_config, config, az, instanceNumber, security_groups, load_balancers, min_size, max_size):
-    auto_scaling_group = autoscaling.AutoScalingGroup(create_name("AutoScalingGroup", az, instanceNumber))
+    auto_scaling_group = autoscaling.AutoScalingGroup(create_name("ASG", az, instanceNumber))
     auto_scaling_group.AvailabilityZones = [get_availability_zone(aws_config, az)]
     auto_scaling_group.LaunchConfigurationName = Ref(create_lauch_config_name(az, instanceNumber))
     load_balancer_list = []
@@ -93,7 +97,7 @@ def create_autoscalling_group(aws_config, config, az, instanceNumber, security_g
     auto_scaling_group.LoadBalancerNames = load_balancer_list
     auto_scaling_group.MaxSize = Ref(min_size)
     auto_scaling_group.MinSize = Ref(max_size)
-    auto_scaling_group.Tags = create_autoscalling_tags(config, "loadbalancer", az, instanceNumber)
+    auto_scaling_group.Tags = create_autoscalling_tags(config, "ASG", az, instanceNumber)
     auto_scaling_group.VPCZoneIdentifier = [
         aws_config["Subnets"]["Sandbox_DEV"]["PrivateSubnets"]["Sandbox_DEV_PVT_1" + az]]
     return auto_scaling_group
@@ -104,11 +108,11 @@ def get_availability_zone(aws_config, az):
 
 
 def create_lauch_config_name(az, instanceNumber):
-    return create_name("LaunchConfig", az, instanceNumber)
+    return create_name("LC", az, instanceNumber)
 
 
 def create_instance(aws_config, config, az, instanceNumber):
-    instance = ec2.Instance(create_name("MarkLogic", az, instanceNumber))
+    instance = ec2.Instance(create_name("Instance", az, instanceNumber))
     instance.AvailabilityZone = get_availability_zone(aws_config, az)
     instance.EbsOptimized = config["EbsOptimized"]
     instance.ImageId = config["MarkLogicAMIImageId"]
@@ -120,7 +124,7 @@ def create_instance(aws_config, config, az, instanceNumber):
 
 
 def create_network_interface(aws_config, config, az, instanceNumber, group_set):
-    network_interface = ec2.NetworkInterface(create_name("MarkLogicNetworkInterface", az, instanceNumber))
+    network_interface = ec2.NetworkInterface(create_name("ENI", az, instanceNumber))
     network_interface.Description = "For MarkLogic zone " + az + " instance " + str(instanceNumber)
     group_set_list = []
     for group in group_set:
@@ -131,58 +135,86 @@ def create_network_interface(aws_config, config, az, instanceNumber, group_set):
     return network_interface
 
 
-def create_data_volume(aws_config, config, az, instanceNumber):
-    data_volume = ec2.Volume(create_name("MarkLogicDataVolume", az, instanceNumber))
+def create_data_volume(aws_config, config, az, instanceNumber, data_volume_number):
+    data_volume = ec2.Volume(create_name("DataVolume", az, instanceNumber))
     data_volume.AvailabilityZone = get_availability_zone(aws_config, az)
-    data_volumes = config["DataVolumes"]
-    data_volume.Encrypted = data_volumes["Encrypted"]
-    if data_volumes["VolumeType"] != "gp2":
-        data_volume.Iops = data_volumes["Iops"]
-    data_volume.Size = data_volumes["Size"]
-    data_volume.Tags = create_key_value_tags(config, "DataVolume", az, instanceNumber)
-    data_volume.VolumeType = data_volumes["VolumeType"]
+    data_volume_config = config["DataVolumes"][data_volume_number - 1]
+    data_volume.Encrypted = data_volume_config["Encrypted"]
+    if data_volume_config["VolumeType"] != "gp2":
+        data_volume.Iops = data_volume_config["Iops"]
+    data_volume.Size = data_volume_config["Size"]
+    tags = create_key_value_tags(config, "DataVolume", az, instanceNumber)
+    tags.append(ec2.Tag("volume", data_volume_number))
+    tags.append(ec2.Tag("Device", data_volume_config["Device"]))
+    tags.append(ec2.Tag("MountDirectory", data_volume_config["MountDirectory"]))
+    data_volume.Tags = tags
+    data_volume.VolumeType = data_volume_config["VolumeType"]
+    if data_volume_config["FromSnapshot"] == "true":
+        data_volume.SnapshotId = data_volume_config["SnapshotId"]
     return data_volume
 
 
-def create_config_volume(aws_config, config, az, instanceNumber):
-    data_volume = ec2.Volume(create_name("MarkLogicConfigVolume", az, instanceNumber))
-    data_volume.AvailabilityZone = get_availability_zone(aws_config, az)
-    config_volumes = config["ConfigVolumes"]
-    data_volume.Encrypted = config_volumes["Encrypted"]
-    if config_volumes["VolumeType"] != "gp2":
-        data_volume.Iops = config_volumes["Iops"]
-    data_volume.Size = config_volumes["Size"]
-    data_volume.Tags = create_key_value_tags(config, "ConfigVolume", az, instanceNumber)
-    data_volume.VolumeType = config_volumes["VolumeType"]
-    return data_volume
+def create_config_volume(aws_config, config, az, instance_number, config_volume_number):
+    config_volume = ec2.Volume(create_name("ConfigVolume", az, instance_number))
+    config_volume.AvailabilityZone = get_availability_zone(aws_config, az)
+    config_volume_config = config["ConfigVolumes"][config_volume_number - 1]
+    config_volume.Encrypted = config_volume_config["Encrypted"]
+    if config_volume_config["VolumeType"] != "gp2":
+        config_volume.Iops = config_volume_config["Iops"]
+    config_volume.Size = config_volume_config["Size"]
+    tags = create_key_value_tags(config, "ConfigVolume", az, instance_number)
+    tags.append(ec2.Tag("volume", config_volume_number))
+    tags.append(ec2.Tag("Device", config_volume_config["Device"]))
+    tags.append(ec2.Tag("MountDirectory", config_volume_config["MountDirectory"]))
+    config_volume.Tags = tags
+    config_volume.VolumeType = config_volume_config["VolumeType"]
+    if config_volume_config["FromSnapshot"] == "true":
+        config_volume.SnapshotId = config_volume_config["SnapshotId"]
+    return config_volume
 
 
 def create_load_balancer_security_group(aws_config, config):
     return ec2.SecurityGroup(
-        "LoadBalancerSecurityGroup",
+        get_load_balancer_security_group_logical_name(),
         GroupDescription="Enable HTTP/XDBC access on the inbound port",
         SecurityGroupIngress=[
             ec2.SecurityGroupRule(
                 IpProtocol="tcp",
                 FromPort=config["LoadBalancedPorts"]["FromPort"],
                 ToPort=config["LoadBalancedPorts"]["ToPort"],
-                CidrIp="0.0.0.0/0",
+                CidrIp=aws_config["VpcCidrIp"],
             )
         ],
         VpcId=aws_config["VpcId"]
     )
 
 
-def create_cluster_security_group(aws_config, config):
+def get_load_balancer_security_group_logical_name():
+    return get_name_prefix() + "LBSG"
+
+
+def create_cluster_security_group(aws_config, config, load_balancer_security_group):
     return ec2.SecurityGroup(
-        "ClusterSecurityGroup",
+        get_name_prefix()+"InternalSG",
         GroupDescription="Enable communication of cluster ports e.g. For nodes within cluster and replication between clusters.",
         SecurityGroupIngress=[
             ec2.SecurityGroupRule(
                 IpProtocol="tcp",
                 FromPort=config["ClusterPorts"]["FromPort"],
                 ToPort=config["ClusterPorts"]["ToPort"],
-                CidrIp="0.0.0.0/0",
+                CidrIp=aws_config["VpcCidrIp"],
+            ),
+            ec2.SecurityGroupRule(
+                IpProtocol="tcp",
+                FromPort="22",
+                ToPort="22",
+                CidrIp=aws_config["VpcCidrIp"],
+            ),
+            ec2.SecurityGroupRule(
+                IpProtocol="tcp",
+                FromPort=config["LoadBalancedPorts"]["FromPort"],
+                ToPort=config["LoadBalancedPorts"]["ToPort"],
+                SourceSecurityGroupId= GetAtt(get_load_balancer_security_group_logical_name(), "GroupId")
             )
         ],
         VpcId=aws_config["VpcId"]
@@ -190,8 +222,15 @@ def create_cluster_security_group(aws_config, config):
 
 
 def create_load_balancer(aws_config, config, security_groups):
-    load_balancer = elb.LoadBalancer("MarkLogicLoadBalancer")
+    load_balancer = elb.LoadBalancer(get_name_prefix()+"ELB")
     config_load_balancer = config["LoadBalancer"]
+    access_logging_policy = config_load_balancer["AccessLoggingPolicy"]
+    load_balancer.AccessLoggingPolicy = elb.AccessLoggingPolicy(
+        EmitInterval=access_logging_policy["EmitInterval"],
+        Enabled=access_logging_policy["Enabled"] == "true",
+        S3BucketName=access_logging_policy["S3BucketName"],
+        S3BucketPrefix=access_logging_policy["S3BucketPrefix"]
+    )
     load_balancer.AppCookieStickinessPolicy = config_load_balancer["AppCookieStickinessPolicy"]
     draining_policy = config_load_balancer["ConnectionDrainingPolicy"]
     load_balancer.ConnectionDrainingPolicy = elb.ConnectionDrainingPolicy(
@@ -208,6 +247,7 @@ def create_load_balancer(aws_config, config, security_groups):
         Timeout=health_check["Timeout"]
     )
     load_balancer.Listeners = config_load_balancer["Listeners"]
+    load_balancer.Scheme = config_load_balancer["Scheme"]
     load_balancer.Subnets = get_private_subnets(aws_config).values()
     security_groups_list = []
     for group in security_groups:
@@ -226,7 +266,7 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(level=logging.INFO)
 
-    # env = arguments["ENV"].lower()
+    env = arguments["ENV"].lower()
 
     with open('conf/aws_config.json') as aws_config_file:
         aws_config = json.load(aws_config_file)
@@ -261,29 +301,41 @@ if __name__ == '__main__':
     )
     template.add_parameter(max_size)
 
-    cluster_security_group = create_cluster_security_group(aws_config, config)
     load_balancer_security_group = create_load_balancer_security_group(aws_config, config)
-    template.add_resource(cluster_security_group)
     template.add_resource(load_balancer_security_group)
     load_balancer = create_load_balancer(aws_config, config, [load_balancer_security_group])
     template.add_resource(load_balancer)
 
+    cluster_security_group = create_cluster_security_group(aws_config, config, load_balancer_security_group)
+    template.add_resource(cluster_security_group)
+
+
     for az in zones:
-        for instanceNumber in range(1, config["NumberOfInstancesPerZone"] + 1):
-            launch_config = create_launch_config(aws_config, config, az, instanceNumber, [cluster_security_group])
+        for instance_number in range(1, config["NumberOfInstancesPerZone"] + 1):
+            launch_config = create_launch_config(aws_config, config, az, instance_number, [cluster_security_group])
             template.add_resource(launch_config)
-            autoscalling_group = create_autoscalling_group(aws_config, config, az, instanceNumber,
+            autoscalling_group = create_autoscalling_group(aws_config, config, az, instance_number,
                                                            [cluster_security_group], [load_balancer], min_size, max_size)
             template.add_resource(autoscalling_group)
-            config_volume = create_config_volume(aws_config, config, az, instanceNumber)
-            template.add_resource(config_volume)
-            data_volume = create_data_volume(aws_config, config, az, instanceNumber)
-            template.add_resource(data_volume)
-            network_interface = create_network_interface(aws_config, config, az, instanceNumber,
+            for config_volume_number in range(1, len(config["ConfigVolumes"]) + 1):
+                config_volume = create_config_volume(aws_config, config, az, instance_number, config_volume_number)
+                template.add_resource(config_volume)
+            for data_volume_number in range(1, len(config["DataVolumes"])+1):
+                data_volume = create_data_volume(aws_config, config, az, instance_number, data_volume_number)
+                template.add_resource(data_volume)
+            network_interface = create_network_interface(aws_config, config, az, instance_number,
                                                          [cluster_security_group])
             template.add_resource(network_interface)
 
     print(template.to_json())
 
-    with open('templates/'+config["Component"]+".json", 'w') as template_file:
+    template_file_name =  env + config["Type"] + config["Component"] + ".json"
+    template_file_path = 'templates/' + template_file_name
+    with open(template_file_path, 'w') as template_file:
         template_file.write(template.to_json())
+
+    s3_connection = boto.connect_s3()
+    bucket = s3_connection.get_bucket(aws_config["S3BucketForTemplates"])
+    key = boto.s3.key.Key(bucket, aws_config["S3TemplatesKeyPrefix"]+template_file_name)
+    with open(template_file_path) as f:
+        key.set_contents_from_file(f)

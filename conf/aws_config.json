@@ -2,6 +2,7 @@
     "Region": "us-east-1",
     "Zones": [ "b", "c", "e" ],
     "VpcId": "vpc-6a80380e",
+    "VpcCidrIp":"10.221.0.0/16",
     "Subnets": {
         "Sandbox_DEV": {
             "PublicSubnets": {
@@ -15,5 +16,7 @@
                 "Sandbox_DEV_PVT_1e": "subnet-e04ef1dd"
             }
         }
-    }
+    },
+    "S3BucketForTemplates" : "sandbox-dev-bucket",
+    "S3TemplatesKeyPrefix" : "/rasingh/cloud-formation-templates/rasingh-MarkLogic/"
 }
