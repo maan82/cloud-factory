@@ -1,0 +1,11 @@
+- setup http server on ML
+- Sort out security
+- NAT should be in Autoscalling group
+- Script ML setup(cluster creation, db creation and and db configs)
+- setup https server on ML
+- setup cloudformation for application layer
+- application with spring boot and spring cloud
+- setup cachce
+- setup flexible replication in ML
+- setup replication in ML
+
