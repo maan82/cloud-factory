@@ -52,12 +52,12 @@ def create_autoscalling_tags(config, base, az, instanceNumber, env):
     return tags
 
 
-def create_launch_config(aws_config, config, az, instanceNumber, security_groups, env):
-    launch_configuration = autoscaling.LaunchConfiguration(create_lauch_config_name(az, instanceNumber, env, config))
+def create_launch_config(aws_config, config, instance_type, az, instance_number, security_groups, env):
+    launch_configuration = autoscaling.LaunchConfiguration(create_lauch_config_name(az, instance_number, env, config))
     launch_configuration.EbsOptimized = config["EbsOptimized"]
     launch_configuration.IamInstanceProfile = config["IamInstanceProfile"]
     launch_configuration.ImageId = config["MarkLogicAMIImageId"]
-    launch_configuration.InstanceType = config["InstanceType"]
+    launch_configuration.InstanceType = Ref(instance_type)
     launch_configuration.KeyName = config["KeyName"]
     security_group_list = []
     for group in security_groups:
@@ -65,7 +65,7 @@ def create_launch_config(aws_config, config, az, instanceNumber, security_groups
 
     launch_configuration.SecurityGroups = security_group_list
     instance_config = {"stack-name": get_name_prefix(env, config), "region": aws_config["Region"], "env": env, "componentType": config["Type"],
-                       "component": config["Component"], "zone": az, "instanceNumber": instanceNumber,
+                       "component": config["Component"], "zone": az, "instanceNumber": instance_number,
                        "ConfigVolumes": config["ConfigVolumes"], "DataVolumes": config["DataVolumes"]}
     with open ("attach_volumes.py", "r") as attach_volumes_file:
         attach_volumes_file_string=attach_volumes_file.read()
@@ -287,7 +287,7 @@ if __name__ == '__main__':
         "MinSize",
         Default="1",
         AllowedValues=["0", "1"],
-        Type="String",
+        Type="Number",
         Description="Set MinSize and MaxSize to 0 to stop instances. Set it to 1 to start instances",
     )
     template.add_parameter(min_size)
@@ -296,10 +296,20 @@ if __name__ == '__main__':
         "MaxSize",
         Default="1",
         AllowedValues=["0", "1"],
-        Type="String",
+        Type="Number",
         Description="Set MinSize and MaxSize to 0 to stop instances. Set it to 1 to start instances.",
     )
     template.add_parameter(max_size)
+
+    instance_type = Parameter(
+        "InstanceType",
+        Default="t2.small",
+        AllowedValues=["t2.micro", "t2.small", "t2.medium", "t2.large", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge", "c4.8xlarge", "c3.large", "c3.xlarge", "c3.2xlarge", "c3.4xlarge", "c3.8xlarge", "r3.large", "r3.xlarge", "r3.2xlarge", "r3.4xlarge", "r3.8xlarge", "i2.xlarge", "i2.2xlarge", "i2.4xlarge", "i2.8xlarge", "d2.xlarge", "d2.2xlarge", "d2.4xlarge", "d2.8xlarge", "g2.2xlarge", "g2.8xlarge"],
+        Type="String",
+        Description="Set type of EC2 instance to launch.",
+    )
+    template.add_parameter(instance_type)
+
 
     load_balancer_security_group = create_load_balancer_security_group(aws_config, config, env)
     template.add_resource(load_balancer_security_group)
@@ -312,7 +322,7 @@ if __name__ == '__main__':
 
     for az in zones:
         for instance_number in range(1, config["NumberOfInstancesPerZone"] + 1):
-            launch_config = create_launch_config(aws_config, config, az, instance_number, [cluster_security_group], env)
+            launch_config = create_launch_config(aws_config, config, instance_type, az, instance_number, [cluster_security_group], env)
             template.add_resource(launch_config)
             autoscalling_group = create_autoscalling_group(aws_config, config, az, instance_number,
                                                            [cluster_security_group], [load_balancer], min_size, max_size, env)

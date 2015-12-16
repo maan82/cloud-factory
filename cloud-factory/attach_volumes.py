@@ -80,8 +80,8 @@ def mount_volume(device, mount_point):
 
     if not os.path.isdir(mount_point):
         run_command("sudo mkdir -p " + mount_point)
-        run_command("sudo chown daemon:daemon " + mount_point)
     run_command("sudo mount " + device + " " + mount_point)
+    run_command("sudo chown daemon:daemon " + mount_point)
 
 
 def start_marklogic():

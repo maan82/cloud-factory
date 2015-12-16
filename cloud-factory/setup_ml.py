@@ -64,7 +64,7 @@ def post_and_await_restart(host, url, data, headers, auth=None):
 
 def initialize_cluster(hosts, config):
     master_host = hosts[0]
-    headers = headers = {'Content-Type': 'application/xml'}
+    headers = {'Content-Type': 'application/xml'}
     print("Initializing Bootstrap Host %s" % master_host)
     init_data = '<init xmlns="http://marklogic.com/manage"><license-key>'+config["license-key"]+'</license-key><licensee>'+config["licensee"]+'</licensee></init>'
     post_and_await_restart(master_host, "http://%s:8001/admin/v1/init" % master_host, init_data, headers)
