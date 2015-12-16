@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     template_url = "https://s3.amazonaws.com/"+aws_config["S3BucketForTemplates"]+aws_config["S3TemplatesKeyPrefix"]+stack_name+".json"
     stack = conn.create_stack(stack_name=stack_name, template_url=template_url,
-                              parameters=[("MaxSize", "1"), ("MinSize", "1")], tags={"name": stack_name})
+                              parameters=[("MaxSize", "1"), ("MinSize", "1"), ("InstanceType", "m4.xlarge")], tags={"name": stack_name})
     next_token = ""
     status = ""
     while "COMPLETE" not in status:

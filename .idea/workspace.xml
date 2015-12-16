@@ -2,12 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="53bc7c47-0a9c-4d64-96d2-6f6aa0334662" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/format_volumes.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/attach_volume.py" afterPath="$PROJECT_DIR$/attach_volumes.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/cloud-factory.iml" afterPath="$PROJECT_DIR$/.idea/cloud-factory.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ml_stack.py" afterPath="$PROJECT_DIR$/ml_stack.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/templates/ml-master.json" afterPath="$PROJECT_DIR$/templates/ml-master.json" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/update_stack.py" afterPath="$PROJECT_DIR$/update_stack.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cloud-factory/attach_volumes.py" afterPath="$PROJECT_DIR$/cloud-factory/attach_volumes.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cloud-factory/boto_test.py" afterPath="$PROJECT_DIR$/cloud-factory/boto_test.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cloud-factory/conf/marklogic_cluster01.json" afterPath="$PROJECT_DIR$/cloud-factory/conf/marklogic_cluster01.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cloud-factory/create_stack.py" afterPath="$PROJECT_DIR$/cloud-factory/create_stack.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cloud-factory/ml_stack.py" afterPath="$PROJECT_DIR$/cloud-factory/ml_stack.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cloud-factory/templates/rasinghMarkLogicCluster01.json" afterPath="$PROJECT_DIR$/cloud-factory/templates/rasinghMarkLogicCluster01.json" />
     </list>
     <ignored path="cloud-factory.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -29,63 +31,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="ml_stack.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/ml_stack.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.3257143">
-              <caret line="254" column="25" selection-start-line="254" selection-start-column="25" selection-end-line="254" selection-end-column="25" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="aws_config.json" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/conf/aws_config.json">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.625">
-              <caret line="1" column="11" selection-start-line="1" selection-start-column="5" selection-end-line="1" selection-end-column="11" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ml_master.json" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/conf/ml_master.json">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-11.958333">
-              <caret line="109" column="20" selection-start-line="109" selection-start-column="3" selection-end-line="109" selection-end-column="20" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="update_stack.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/update_stack.py">
+      <file leaf-file-name="test_ml_stack.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cloud-factory/test_ml_stack.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="2" column="25" selection-start-line="2" selection-start-column="25" selection-end-line="2" selection-end-column="25" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="attach_volumes.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/attach_volumes.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="27" column="22" selection-start-line="27" selection-start-column="22" selection-end-line="27" selection-end-column="22" />
-              <folding>
-                <element signature="e#0#11#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="format_volumes.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/format_volumes.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="20" column="29" selection-start-line="20" selection-start-column="29" selection-end-line="20" selection-end-column="29" />
+              <caret line="84" column="26" selection-start-line="84" selection-start-column="26" selection-end-line="84" selection-end-column="26" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
@@ -93,41 +43,108 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="rasinghMarkLogicCluster01.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cloud-factory/templates/rasinghMarkLogicCluster01.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="22.5">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding>
+                <marker date="1450192298429" expanded="true" signature="66:1663" placeholder="{...}" />
+                <marker date="1450192298429" expanded="true" signature="92:1394" placeholder="{&quot;Default&quot;: &quot;t2.small&quot;...}" />
+                <marker date="1450192298429" expanded="true" signature="123:1253" placeholder="[...]" />
+                <marker date="1450192298429" expanded="true" signature="1415:1663" placeholder="{&quot;Default&quot;: &quot;1&quot;...}" />
+                <marker date="1450192298429" expanded="true" signature="1446:1502" placeholder="[...]" />
+                <marker date="1450192298429" expanded="true" signature="7890:7910" placeholder="{&quot;Ref&quot;: &quot;InstanceType&quot;...}" />
+                <marker date="1450192298429" expanded="true" signature="7890:8282" placeholder="{...}" />
+                <marker date="1450192298429" expanded="true" signature="7890:8350" placeholder="{&quot;Type&quot;: &quot;AWS::AutoScaling::AutoScalingGroup&quot;...}" />
+                <marker date="1450192298429" expanded="true" signature="7890:103280" placeholder="{...}" />
+                <marker date="1450192298429" expanded="true" signature="7936:8172" placeholder="[...]" />
+                <marker date="1450192298429" expanded="true" signature="7958:8154" placeholder="{&quot;Key&quot;: &quot;name&quot;...}" />
+                <marker date="1450192298429" expanded="true" signature="8211:8268" placeholder="[...]" />
+                <marker date="1450192298429" expanded="true" signature="8403:8547" placeholder="{&quot;Type&quot;: &quot;AWS::EC2::Volume&quot;...}" />
+                <marker date="1450192298429" expanded="true" signature="8431:8547" placeholder="{&quot;AvailabilityZone&quot;: &quot;us-east-1b&quot;...}" />
+                <marker date="1450192298429" expanded="true" signature="94595:103203" placeholder="{&quot;EbsOptimized&quot;: &quot;false&quot;...}" />
+                <marker date="1450192298429" expanded="true" signature="94595:103274" placeholder="{&quot;Type&quot;: &quot;AWS::AutoScaling::LaunchConfiguration&quot;...}" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="marklogic_cluster01.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cloud-factory/conf/marklogic_cluster01.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-10.416667">
+              <caret line="75" column="25" selection-start-line="75" selection-start-column="25" selection-end-line="75" selection-end-column="25" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ml_stack.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cloud-factory/ml_stack.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-4.7">
+              <caret line="52" column="0" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="delete_stack.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/delete_stack.py">
+        <entry file="file://$PROJECT_DIR$/cloud-factory/delete_stack.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="41" column="25" selection-start-line="41" selection-start-column="25" selection-end-line="41" selection-end-column="25" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/temp-python/local/lib/python2.7/site-packages/troposphere/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="460" column="28" selection-start-line="460" selection-start-column="28" selection-end-line="460" selection-end-column="28" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="create_stack.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cloud-factory/create_stack.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="46" column="0" selection-start-line="46" selection-start-column="0" selection-end-line="46" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="attach_volumes.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cloud-factory/attach_volumes.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="89" column="0" selection-start-line="89" selection-start-column="0" selection-end-line="89" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="boto_test.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/cloud-factory/boto_test.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.520073">
+              <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="format_volumes.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cloud-factory/format_volumes.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="connection.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/temp-python/lib/python2.7/site-packages/boto/ec2/connection.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="2334" column="8" selection-start-line="2334" selection-start-column="8" selection-end-line="2334" selection-end-column="8" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="volume.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/temp-python/local/lib/python2.7/site-packages/boto/ec2/volume.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="266" column="8" selection-start-line="266" selection-start-column="8" selection-end-line="266" selection-end-column="8" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ml-master.json" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/templates/ml-master.json">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="159" column="25" selection-start-line="159" selection-start-column="25" selection-end-line="159" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -147,6 +164,12 @@
         <option value="$PROJECT_DIR$/format_volume.py" />
         <option value="$PROJECT_DIR$/ml_stack.py" />
         <option value="$PROJECT_DIR$/attach_volumes.py" />
+        <option value="$PROJECT_DIR$/TODO" />
+        <option value="$PROJECT_DIR$/cloud-factory/create_stack.py" />
+        <option value="$PROJECT_DIR$/cloud-factory/conf/marklogic_cluster01.json" />
+        <option value="$PROJECT_DIR$/cloud-factory/ml_stack.py" />
+        <option value="$PROJECT_DIR$/cloud-factory/boto_test.py" />
+        <option value="$PROJECT_DIR$/cloud-factory/attach_volumes.py" />
       </list>
     </option>
   </component>
@@ -208,21 +231,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="templates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
               <option name="myItemId" value="cloud-factory" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cloud-factory" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="conf" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -236,55 +245,95 @@
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$2/Languages" value="Python" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/python2.7/bin/python" />
   </component>
-  <component name="RunManager" selected="Python.update_stack">
-    <configuration default="false" name="ml_stack" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunManager" selected="Python.boto_test">
+    <configuration default="false" name="ml_stack (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/cloud-factory" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="cloud-factory" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ml_stack.py" />
-      <option name="PARAMETERS" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cloud-factory/ml_stack.py" />
+      <option name="PARAMETERS" value="-f conf/marklogic_cluster01.json rasingh" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="update_stack" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="create_stack" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/cloud-factory" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="cloud-factory" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/update_stack.py" />
-      <option name="PARAMETERS" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cloud-factory/create_stack.py" />
+      <option name="PARAMETERS" value="-f conf/marklogic_cluster01.json rasingh" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="attach_volume" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="delete_stack" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/cloud-factory" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="cloud-factory" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/attach_volumes.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cloud-factory/delete_stack.py" />
+      <option name="PARAMETERS" value="-f conf/marklogic_cluster01.json rasingh" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="Unittests in TestMlStack" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/cloud-factory" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="cloud-factory" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cloud-factory/test_ml_stack.py" />
+      <option name="CLASS_NAME" value="TestMlStack" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_CLASS" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PUREUNITTEST" value="true" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="boto_test" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/cloud-factory" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="cloud-factory" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cloud-factory/boto_test.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -411,16 +460,20 @@
       <option name="USE_KEYWORD" value="false" />
       <method />
     </configuration>
-    <list size="3">
-      <item index="0" class="java.lang.String" itemvalue="Python.ml_stack" />
-      <item index="1" class="java.lang.String" itemvalue="Python.update_stack" />
-      <item index="2" class="java.lang.String" itemvalue="Python.attach_volume" />
+    <list size="5">
+      <item index="0" class="java.lang.String" itemvalue="Python.ml_stack (1)" />
+      <item index="1" class="java.lang.String" itemvalue="Python.create_stack" />
+      <item index="2" class="java.lang.String" itemvalue="Python.delete_stack" />
+      <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests in TestMlStack" />
+      <item index="4" class="java.lang.String" itemvalue="Python.boto_test" />
     </list>
     <recent_temporary>
-      <list size="3">
-        <item index="0" class="java.lang.String" itemvalue="Python.update_stack" />
-        <item index="1" class="java.lang.String" itemvalue="Python.ml_stack" />
-        <item index="2" class="java.lang.String" itemvalue="Python.attach_volume" />
+      <list size="5">
+        <item index="0" class="java.lang.String" itemvalue="Python.boto_test" />
+        <item index="1" class="java.lang.String" itemvalue="Python.create_stack" />
+        <item index="2" class="java.lang.String" itemvalue="Python.ml_stack (1)" />
+        <item index="3" class="java.lang.String" itemvalue="Python.delete_stack" />
+        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests in TestMlStack" />
       </list>
     </recent_temporary>
   </component>
@@ -437,27 +490,35 @@
     </task>
     <servers />
   </component>
+  <component name="TestHistory">
+    <history-entry file="Unittests_in_TestMlStack - 2015.12.15 at 15h 03m 33s.xml">
+      <configuration name="Unittests in TestMlStack" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_ml_stack - 2015.12.15 at 12h 18m 08s.xml">
+      <configuration name="Unittests in test_ml_stack" configurationId="tests" />
+    </history-entry>
+  </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="0" width="1682" height="1025" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28605914" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4800885" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.36615044" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.36219513" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.36172566" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.37560976" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.36707318" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -494,60 +555,16 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="python-line">
-          <url>file://$PROJECT_DIR$/update_stack.py</url>
-          <line>25</line>
-          <option name="timeStamp" value="5" />
+          <url>file://$PROJECT_DIR$/cloud-factory/boto_test.py</url>
+          <line>18</line>
+          <option name="timeStamp" value="6" />
         </line-breakpoint>
       </breakpoints>
-      <option name="time" value="6" />
+      <option name="time" value="7" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/ml_stack.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="67" column="0" selection-start-line="67" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/update_stack.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="2" column="25" selection-start-line="2" selection-start-column="25" selection-end-line="2" selection-end-column="25" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/attach_volumes.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="22" selection-start-line="27" selection-start-column="22" selection-end-line="27" selection-end-column="22" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/format_volumes.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="20" column="29" selection-start-line="20" selection-start-column="29" selection-end-line="20" selection-end-column="29" />
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/delete_stack.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -578,14 +595,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="266" column="8" selection-start-line="266" selection-start-column="8" selection-end-line="266" selection-end-column="8" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/templates/ml-master.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="159" column="25" selection-start-line="159" selection-start-column="25" selection-end-line="159" selection-end-column="25" />
           <folding />
         </state>
       </provider>
@@ -601,6 +610,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="303" column="0" selection-start-line="303" selection-start-column="0" selection-end-line="303" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -608,13 +618,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="19" column="47" selection-start-line="19" selection-start-column="42" selection-end-line="19" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/create_stack.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="17" column="14" selection-start-line="17" selection-start-column="14" selection-end-line="17" selection-end-column="41" />
         </state>
       </provider>
     </entry>
@@ -652,43 +655,15 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/templates/ml-master.json">
+    <entry file="file://$PROJECT_DIR$/TODO">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="159" column="25" selection-start-line="159" selection-start-column="25" selection-end-line="159" selection-end-column="25" />
+          <caret line="11" column="0" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/attach_volumes.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="22" selection-start-line="27" selection-start-column="22" selection-end-line="27" selection-end-column="22" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/update_stack.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="2" column="25" selection-start-line="2" selection-start-column="25" selection-end-line="2" selection-end-column="25" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/format_volumes.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="20" column="29" selection-start-line="20" selection-start-column="29" selection-end-line="20" selection-end-column="29" />
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/delete_stack.py">
+    <entry file="file://$PROJECT_DIR$/cloud-factory/conf/aws_config.json">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
@@ -696,26 +671,109 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/conf/aws_config.json">
+    <entry file="file://$PROJECT_DIR$/cloud-factory/templates/rasinghMarkLogicCluster01.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.625">
-          <caret line="1" column="11" selection-start-line="1" selection-start-column="5" selection-end-line="1" selection-end-column="11" />
+        <state vertical-scroll-proportion="22.5">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <marker date="1450192298429" expanded="true" signature="66:1663" placeholder="{...}" />
+            <marker date="1450192298429" expanded="true" signature="92:1394" placeholder="{&quot;Default&quot;: &quot;t2.small&quot;...}" />
+            <marker date="1450192298429" expanded="true" signature="123:1253" placeholder="[...]" />
+            <marker date="1450192298429" expanded="true" signature="1415:1663" placeholder="{&quot;Default&quot;: &quot;1&quot;...}" />
+            <marker date="1450192298429" expanded="true" signature="1446:1502" placeholder="[...]" />
+            <marker date="1450192298429" expanded="true" signature="7890:7910" placeholder="{&quot;Ref&quot;: &quot;InstanceType&quot;...}" />
+            <marker date="1450192298429" expanded="true" signature="7890:8282" placeholder="{...}" />
+            <marker date="1450192298429" expanded="true" signature="7890:8350" placeholder="{&quot;Type&quot;: &quot;AWS::AutoScaling::AutoScalingGroup&quot;...}" />
+            <marker date="1450192298429" expanded="true" signature="7890:103280" placeholder="{...}" />
+            <marker date="1450192298429" expanded="true" signature="7936:8172" placeholder="[...]" />
+            <marker date="1450192298429" expanded="true" signature="7958:8154" placeholder="{&quot;Key&quot;: &quot;name&quot;...}" />
+            <marker date="1450192298429" expanded="true" signature="8211:8268" placeholder="[...]" />
+            <marker date="1450192298429" expanded="true" signature="8403:8547" placeholder="{&quot;Type&quot;: &quot;AWS::EC2::Volume&quot;...}" />
+            <marker date="1450192298429" expanded="true" signature="8431:8547" placeholder="{&quot;AvailabilityZone&quot;: &quot;us-east-1b&quot;...}" />
+            <marker date="1450192298429" expanded="true" signature="94595:103203" placeholder="{&quot;EbsOptimized&quot;: &quot;false&quot;...}" />
+            <marker date="1450192298429" expanded="true" signature="94595:103274" placeholder="{&quot;Type&quot;: &quot;AWS::AutoScaling::LaunchConfiguration&quot;...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm50/system/python_stubs/1143814342/__builtin__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33272058">
+          <caret line="769" column="6" selection-start-line="769" selection-start-column="6" selection-end-line="769" selection-end-column="6" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/conf/ml_master.json">
+    <entry file="file://$PROJECT_DIR$/temp-python/local/lib/python2.7/site-packages/troposphere/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-11.958333">
-          <caret line="109" column="20" selection-start-line="109" selection-start-column="3" selection-end-line="109" selection-end-column="20" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="460" column="28" selection-start-line="460" selection-start-column="28" selection-end-line="460" selection-end-column="28" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ml_stack.py">
+    <entry file="file://$PROJECT_DIR$/cloud-factory/conf/marklogic_cluster01.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3257143">
-          <caret line="254" column="25" selection-start-line="254" selection-start-column="25" selection-end-line="254" selection-end-column="25" />
+        <state vertical-scroll-proportion="-10.416667">
+          <caret line="75" column="25" selection-start-line="75" selection-start-column="25" selection-end-line="75" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cloud-factory/test_ml_stack.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="84" column="26" selection-start-line="84" selection-start-column="26" selection-end-line="84" selection-end-column="26" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cloud-factory/delete_stack.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="41" column="25" selection-start-line="41" selection-start-column="25" selection-end-line="41" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cloud-factory/ml_stack.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-4.7">
+          <caret line="52" column="0" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cloud-factory/format_volumes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cloud-factory/create_stack.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="46" column="0" selection-start-line="46" selection-start-column="0" selection-end-line="46" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cloud-factory/attach_volumes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="89" column="0" selection-start-line="89" selection-start-column="0" selection-end-line="89" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cloud-factory/boto_test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.520073">
+          <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
           <folding />
         </state>
       </provider>
