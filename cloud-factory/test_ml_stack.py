@@ -1,5 +1,6 @@
 import unittest
 import ml_stack
+import mock
 
 class TestMlStack(unittest.TestCase):
     aws_config = {
@@ -120,8 +121,13 @@ class TestMlStack(unittest.TestCase):
         self.assertEqual("subnet-e04ef1dd", ml_stack.get_private_subnet_id(self.aws_config, "e"))
 
     def test_create_network_interface(self):
+        ml_stack.create_key_value_tags = mock.MagicMock(return_value=[])
+
         network_interface = ml_stack.create_network_interface(self.aws_config, self.config, "b", 1, [], "test")
+
         self.assertEqual("testMarkLogicCluster01ENIb1", network_interface.title)
+        self.assertEqual([], network_interface.Tags)
+        ml_stack.create_key_value_tags.assert_called_with(self.config, "NetworkInterface", "b", 1, "test")
 
 if __name__ == '__main__':
     unittest.main()

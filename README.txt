@@ -15,3 +15,7 @@ https://pip.pypa.io/en/stable/installing/
 ansible does not work with python 3 so use virtualenv if you have python 3 as default
 
 
+dependencies
+1. boto
+2. mock
+3. troposphere
