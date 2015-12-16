@@ -20,30 +20,44 @@ import logging
 import requests
 from xml.etree import ElementTree
 from getpass import getpass
+from requests.auth import HTTPDigestAuth
 
 RETRY_COUNT = 15
 RETRY_WAIT_MULTIPLIER = 1
 
-def post(url, data, headers, timeout=60):
-    data = data
-    r = requests.post(url, data=data, timeout=timeout, allow_redirects=True)
+def print_response(url, response):
+    print("Url : %s status_code : %s response : %s" % (url, response.status_code, response.text))
+
+def post(url, data, headers, timeout=60, auth=None):
+    print ("Post url : " + url)
+    r = requests.post(url, headers=headers, data=data, timeout=timeout, allow_redirects=True, auth=auth)
+    print(url, r)
     return r
 
-def get(url, headers, timeout=60):
-    return requests.get(url, timeout=timeout, allow_redirects=True)
+def get(url, timeout=60, auth=None):
+    print("Get url : "+url)
+    response = requests.get(url, timeout=timeout, allow_redirects=True, auth=auth)
+    print(url, response)
+    return response
 
-def post_and_await_restart(host, url, data, headers):
-    response = post(url, data, headers)
+def post_and_await_restart(host, url, data, headers, auth=None):
+    response = post(url, data, headers, auth)
     if response.status_code == 202:
         element_tree = ElementTree.fromstring(response.text)
-        time_stamp = element_tree.findall("./ml:last-startup", {'ml': 'http://marklogic.com/manage'})[0].text.strip()
+        ml_namespace = "http://marklogic.com/manage"
+        time_stamp = element_tree.findall("./{%s}last-startup" % ml_namespace)[0].text.strip()
         new_time_stamp = ""
         count = 0
         while count < RETRY_COUNT and new_time_stamp == "" or new_time_stamp == time_stamp:
             try:
                 count = count + 1
                 time.sleep(count)
-                new_time_stamp = get("http://%s:8001/admin/v1/timestamp" % host).text.strip()
+                response = get("http://%s:8001/admin/v1/timestamp" % host, auth)
+                if response.status_code == 200:
+                    new_time_stamp = response.text.strip()
+                    print("New timestamp : %s" % new_time_stamp)
+                else:
+                    print("Response : %s" % response.text)
             except Exception:
                 pass
 
@@ -56,13 +70,15 @@ def initialize_cluster(hosts, config):
     post_and_await_restart(master_host, "http://%s:8001/admin/v1/init" % master_host, init_data, headers)
 
     admin_password=getpass("Please enter admin password for Marklogic :")
-    print("Setting admin password}")
+    print("Setting admin password")
     admin_password_data='<instance-admin xmlns="http://marklogic.com/manage"><admin-password>'+admin_password+'</admin-password><admin-username>admin</admin-username><realm>public</realm></instance-admin>'
-    post_and_await_restart(master_host, "http://%s:8001/admin/v1/instance-admin" % master_host, admin_password_data, headers)
+    auth = HTTPDigestAuth("admin", admin_password)
+    post_and_await_restart(master_host, "http://%s:8001/admin/v1/instance-admin" % master_host, admin_password_data, headers,
+                           auth)
 
     print("Setting hostname for %s" % master_host)
     hostname_data = '<host-properties xmlns="http://marklogic.com/manage"><host-name>'+master_host+'</host-name></host-properties>'
-    post_and_await_restart(master_host, "http://%s:8002/manage/v2/hosts/%s/properties" % (master_host, master_host), hostname_data, headers)
+    post_and_await_restart(master_host, "http://%s:8002/manage/v2/hosts/%s/properties" % (master_host, master_host), hostname_data, headers, auth)
 
     print("Host %s configured" % master_host)
 """
