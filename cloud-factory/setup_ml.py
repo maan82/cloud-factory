@@ -21,6 +21,7 @@ import requests
 from xml.etree import ElementTree
 from getpass import getpass
 from requests.auth import HTTPDigestAuth
+import ml_stack
 
 RETRY_COUNT = 15
 RETRY_WAIT_MULTIPLIER = 1
@@ -28,16 +29,34 @@ RETRY_WAIT_MULTIPLIER = 1
 def print_response(url, response):
     print("Url : %s status_code : %s response : %s" % (url, response.status_code, response.text))
 
-def post(url, data, headers, timeout=60, auth=None):
-    print ("Post url : " + url)
-    r = requests.post(url, headers=headers, data=data, timeout=timeout, allow_redirects=True, auth=auth)
-    print(url, r)
+def post(url, data, headers, auth=None):
+    print("Post url : " + url)
+    if auth is not None:
+	print("auth : "+str(auth))
+    else:
+        print("auth is None")
+    r = requests.post(url, headers=headers, data=data, allow_redirects=True, auth=auth)
+    print_response(url, r)
     return r
 
-def get(url, timeout=60, auth=None):
+def put(url, data, headers, auth=None):
+    print("Post url : " + url)
+    if auth is not None:
+        print("auth : "+str(auth))
+    else:
+        print("auth is None")
+    r = requests.put(url, headers=headers, data=data, allow_redirects=True, auth=auth)
+    print_response(url, r)
+    return r
+
+def get(url, auth=None):
     print("Get url : "+url)
-    response = requests.get(url, timeout=timeout, allow_redirects=True, auth=auth)
-    print(url, response)
+    if auth is not None:
+        print("auth : "+str(auth))
+    else:
+        print("auth is None")
+    response = requests.get(url, allow_redirects=True, auth=auth)
+    print_response(url, response)
     return response
 
 def post_and_await_restart(host, url, data, headers, auth=None):
@@ -52,18 +71,26 @@ def post_and_await_restart(host, url, data, headers, auth=None):
             try:
                 count = count + 1
                 time.sleep(count)
-                response = get("http://%s:8001/admin/v1/timestamp" % host, auth)
+                response = get(("http://%s:8001/admin/v1/timestamp" % host), auth)
                 if response.status_code == 200:
                     new_time_stamp = response.text.strip()
-                    print("New timestamp : %s" % new_time_stamp)
-                else:
-                    print("Response : %s" % response.text)
             except Exception:
                 pass
 
+def find_instances_in_cluster(env, config):
+    conn = boto.connect_ec2()
+    stack_name = ml_stack.get_name_prefix(env, config)
+    instances = conn.get_all_instances(filters={"tag:aws:cloudformation:stack-name": stack_name})
+    return instances
 
-def initialize_cluster(hosts, config):
-    master_host = hosts[0]
+def get_private_dns(instance):
+    return instance.private_dns_name
+
+def get_permanent_ip(instance):
+    instance.insterfaces[1].private_ip_address
+
+def initialize_cluster(instances, config):
+    master_host = get_permanent_ip(instances[0])
     headers = {'Content-Type': 'application/xml'}
     print("Initializing Bootstrap Host %s" % master_host)
     init_data = '<init xmlns="http://marklogic.com/manage"><license-key>'+config["license-key"]+'</license-key><licensee>'+config["licensee"]+'</licensee></init>'
@@ -78,15 +105,36 @@ def initialize_cluster(hosts, config):
 
     print("Setting hostname for %s" % master_host)
     hostname_data = '<host-properties xmlns="http://marklogic.com/manage"><host-name>'+master_host+'</host-name></host-properties>'
-    post_and_await_restart(master_host, "http://%s:8002/manage/v2/hosts/%s/properties" % (master_host, master_host), hostname_data, headers, auth)
-
+    private_dns = get_private_dns(instances[0])
+    print("Found private_dns : %s for master_host : %s" % (private_dns, master_host))
+    put("http://%s:8002/manage/v2/hosts/%s/properties" % (master_host, private_dns), hostname_data, headers, auth)
     print("Host %s configured" % master_host)
+
+    remaining_instances = [instances[index] for index in range(1, len(instances))]
+
+    for instance in remaining_instances:
+        permanent_ip = get_permanent_ip(instance)
+        print("Initializing host : %s" % permanent_ip)
+        post_and_await_restart(master_host, "http://%s:8001/admin/v1/init" % permanent_ip, init_data, headers)
+        print("Getting server-config from host : %s" % permanent_ip)
+        response = get("http://${host}:8001/admin/v1/server-config" % permanent_ip, auth)
+        if response.status_code == 200:
+            joiner_config = response.text
+            print("Getting cluster-config from master : %s" % master_host)
+            master_response = post("http://%s:8001/admin/v1/cluster-config" % master_host,
+                         headers={'Content-Type': 'application/x-www-form-urlencoded'}, auth=auth)
+            if master_response.status_code == 200:
+                cluster_config_from_master = master_response.content
+                print("Joining host : %s to cluster" % permanent_ip)
+                post("http://%s:8001/admin/v1/cluster-config" % permanent_ip, headers={'Content-type: application/zip'}, auth=auth)
+
+        else:
+            message = "Failed to get joiner config"
+            print(message)
+            raise Exception(message)
+
+
 """
-echo "Setting hostname for ${master_host} : ${hostname}"
-curl_and_await_restart '-s' '-S' '--digest' '--user' "admin:${password}" '-X' 'PUT' '-H' "'Content-type: application/xml'" '-d' "\"<host-properties xmlns='http://marklogic.com/manage'><host-name>${master_host}</host-name></host-properties>\"" "'http://${master_host}:8002/manage/v2/hosts/${hostname}/properties'"
-
-echo "${master_host} configured"
-
 eval "oh=(${other_hosts[*]})"
 for host in ${oh[@]} ; do
 
@@ -128,6 +176,12 @@ if __name__ == "__main__":
 
     with open(arguments["-f"]) as config_file:
         config = json.load(config_file)
+
+    instances =[]
+    reservations = find_instances_in_cluster(env, config)
+    for reservation in reservations:
+        for instance in reservation.instances:
+            instances.append(instance)
 
     initialize_cluster(())
 
