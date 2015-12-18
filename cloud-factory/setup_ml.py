@@ -194,6 +194,6 @@ if __name__ == "__main__":
     for reservation in reservations:
         for instance in reservation.instances:
             instances.append(instance)
-    print("Found instances count : "+len(instances))
+    print("Found instances count : %d " % len(instances))
     initialize_cluster(instances, config)
 
