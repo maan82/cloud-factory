@@ -12,7 +12,7 @@ Options:
 import os, sys
 
 from docopt import docopt
-import pxssh
+from pexpect import pxssh
 import setup_ml
 import logging
 import json
