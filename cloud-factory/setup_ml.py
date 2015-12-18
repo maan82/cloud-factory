@@ -15,7 +15,7 @@ import commands
 import os
 import time
 from boto.exception import EC2ResponseError
-import docopt
+from docopt import docopt
 import logging
 import requests
 from xml.etree import ElementTree
@@ -194,6 +194,6 @@ if __name__ == "__main__":
     for reservation in reservations:
         for instance in reservation.instances:
             instances.append(instance)
-
-    initialize_cluster(())
+    print("Found instances count : "+len(instances))
+    initialize_cluster(instances, config)
 
