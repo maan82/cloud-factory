@@ -87,7 +87,7 @@ def get_private_dns(instance):
     return instance.private_dns_name
 
 def get_permanent_ip(instance):
-    instance.insterfaces[1].private_ip_address
+    instance.interfaces[1].private_ip_address
 
 def set_host_name(auth, headers, instance, permanent_host_ip):
     print("Setting hostname for %s" % permanent_host_ip)
