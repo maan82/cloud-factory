@@ -173,6 +173,16 @@ for host in ${oh[@]} ; do
 done
 """
 
+
+def find_instances(env, config):
+    instances = []
+    reservations = find_instances_in_cluster(env, config)
+    for reservation in reservations:
+        for instance in reservation.instances:
+            instances.append(instance)
+    return instances
+
+
 if __name__ == "__main__":
     arguments = docopt(__doc__)
 
@@ -189,11 +199,8 @@ if __name__ == "__main__":
     with open(arguments["-f"]) as config_file:
         config = json.load(config_file)
 
-    instances =[]
-    reservations = find_instances_in_cluster(env, config)
-    for reservation in reservations:
-        for instance in reservation.instances:
-            instances.append(instance)
+    instances = find_instances(env, config)
+
     print("Found instances count : %d " % len(instances))
     initialize_cluster(instances, config)
 
