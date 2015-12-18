@@ -10,7 +10,6 @@ Options:
 """
 
 import os, sys
-
 from docopt import docopt
 from pexpect import pxssh
 import setup_ml
@@ -36,18 +35,18 @@ if __name__ == '__main__':
     hosts = [setup_ml.get_permanent_ip(instance) for instance in setup_ml.find_instances(env, config)]
 
     for host in hosts:
-      s = pxssh.pxssh()
-      s.login(host, os.environ['LOGNAME'])
-      s.sendline('uptime')
-      s.prompt()
-      s.sendline("sudo service MarkLogic stop")
-      s.prompt()
-      print(s.before)
-      s.sendline("sudo rm -rf /var/opt/MarkLogic")
-      s.prompt()
-      print(s.before)
-      s.sendline("sudo service MarkLogic start")
-      s.prompt()
-      print(s.before)
-      s.logout()
-
+        print("Clearing hos :  %s " % host)
+        s = pxssh.pxssh()
+        s.login(host, os.environ['LOGNAME'])
+        s.sendline('uptime')
+        s.prompt()
+        s.sendline("sudo service MarkLogic stop")
+        s.prompt()
+        print(s.before)
+        s.sendline("sudo rm -rf /var/opt/MarkLogic")
+        s.prompt()
+        print(s.before)
+        s.sendline("sudo service MarkLogic start")
+        s.prompt()
+        print(s.before)
+        s.logout()
