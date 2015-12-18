@@ -87,7 +87,7 @@ def get_private_dns(instance):
     return instance.private_dns_name
 
 def get_permanent_ip(instance):
-    instance.interfaces[1].private_ip_address
+    return instance.interfaces[1].private_ip_address
 
 def set_host_name(auth, headers, instance, permanent_host_ip):
     print("Setting hostname for %s" % permanent_host_ip)
@@ -102,7 +102,7 @@ def initialize_cluster(instances, config):
     headers = {'Content-Type': 'application/xml'}
     print("Initializing Bootstrap Host %s" % master_host)
     init_data = '<init xmlns="http://marklogic.com/manage"><license-key>'+config["license-key"]+'</license-key><licensee>'+config["licensee"]+'</licensee></init>'
-    post_and_await_restart(master_host, "http://%s:8001/admin/v1/init" % master_host, init_data, headers)
+    post_and_await_restart(master_host, ("http://%s:8001/admin/v1/init" % master_host), init_data, headers)
 
     admin_password=getpass("Please enter admin password for Marklogic :")
     print("Setting admin password")
