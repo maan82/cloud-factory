@@ -49,13 +49,13 @@ def put(url, data, headers, auth=None):
     print_response(url, r)
     return r
 
-def get(url, auth=None):
+def get(url, auth=None, headers=None):
     print("Get url : "+url)
     if auth is not None:
         print("auth : "+str(auth))
     else:
         print("auth is None")
-    response = requests.get(url, allow_redirects=True, auth=auth)
+    response = requests.get(url, allow_redirects=True, auth=auth, headers=headers)
     print_response(url, response)
     return response
 
@@ -89,6 +89,14 @@ def get_private_dns(instance):
 def get_permanent_ip(instance):
     instance.insterfaces[1].private_ip_address
 
+def set_host_name(auth, headers, instance, permanent_host_ip):
+    print("Setting hostname for %s" % permanent_host_ip)
+    hostname_data = '<host-properties xmlns="http://marklogic.com/manage"><host-name>' + permanent_host_ip + '</host-name></host-properties>'
+    private_dns = get_private_dns(instance)
+    print("Found private_dns : %s for master_host : %s" % (private_dns, permanent_host_ip))
+    put("http://%s:8002/manage/v2/hosts/%s/properties" % (permanent_host_ip, private_dns), hostname_data, headers, auth)
+    print("Host %s configured" % permanent_host_ip)
+
 def initialize_cluster(instances, config):
     master_host = get_permanent_ip(instances[0])
     headers = {'Content-Type': 'application/xml'}
@@ -103,12 +111,7 @@ def initialize_cluster(instances, config):
     post_and_await_restart(master_host, "http://%s:8001/admin/v1/instance-admin" % master_host, admin_password_data, headers,
                            auth)
 
-    print("Setting hostname for %s" % master_host)
-    hostname_data = '<host-properties xmlns="http://marklogic.com/manage"><host-name>'+master_host+'</host-name></host-properties>'
-    private_dns = get_private_dns(instances[0])
-    print("Found private_dns : %s for master_host : %s" % (private_dns, master_host))
-    put("http://%s:8002/manage/v2/hosts/%s/properties" % (master_host, private_dns), hostname_data, headers, auth)
-    print("Host %s configured" % master_host)
+    set_host_name(auth, headers, instances[0], master_host)
 
     remaining_instances = [instances[index] for index in range(1, len(instances))]
 
@@ -117,21 +120,30 @@ def initialize_cluster(instances, config):
         print("Initializing host : %s" % permanent_ip)
         post_and_await_restart(master_host, "http://%s:8001/admin/v1/init" % permanent_ip, init_data, headers)
         print("Getting server-config from host : %s" % permanent_ip)
-        response = get("http://${host}:8001/admin/v1/server-config" % permanent_ip, auth)
+        response = get("http://${host}:8001/admin/v1/server-config" % permanent_ip, auth, headers={"Accept": "application/xml"})
         if response.status_code == 200:
             joiner_config = response.text
-            print("Getting cluster-config from master : %s" % master_host)
-            master_response = post("http://%s:8001/admin/v1/cluster-config" % master_host,
+            print(("Getting cluster-config from master : %s" % master_host))
+            master_response = post(("http://%s:8001/admin/v1/cluster-config" % master_host), {"server-config", joiner_config},
                          headers={'Content-Type': 'application/x-www-form-urlencoded'}, auth=auth)
-            if master_response.status_code == 200:
+            if master_response.status_code == 202:
                 cluster_config_from_master = master_response.content
                 print("Joining host : %s to cluster" % permanent_ip)
-                post("http://%s:8001/admin/v1/cluster-config" % permanent_ip, headers={'Content-type: application/zip'}, auth=auth)
+                response = post(("http://%s:8001/admin/v1/cluster-config" % permanent_ip), data=cluster_config_from_master,
+                             headers={'Content-type: application/zip'}, auth=auth)
+                if response.status_code == 202:
+                    set_host_name(auth, {'Content-Type': 'application/xml'}, instance, permanent_ip)
+                else:
+                    message = ("Failed to join cluster host : %s " %permanent_ip)
+                    print(message)
+                    raise Exception(message)
 
         else:
             message = "Failed to get joiner config"
             print(message)
             raise Exception(message)
+
+
 
 
 """
