@@ -109,7 +109,7 @@ def initialize_cluster(instances, config):
     admin_password_data='<instance-admin xmlns="http://marklogic.com/manage"><admin-password>'+admin_password+'</admin-password><admin-username>admin</admin-username><realm>public</realm></instance-admin>'
     auth = HTTPDigestAuth("admin", admin_password)
     post_and_await_restart(master_host, "http://%s:8001/admin/v1/instance-admin" % master_host, admin_password_data, headers,
-                           auth)
+                           auth=auth)
 
     set_host_name(auth, headers, instances[0], master_host)
 
