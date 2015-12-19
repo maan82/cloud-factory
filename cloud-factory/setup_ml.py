@@ -146,7 +146,7 @@ def initialize_cluster(instances, config):
             if master_response.status_code == 200:
                 cluster_config_from_master = master_response.content
                 print("Joining host : %s to cluster" % permanent_ip)
-                response = post_and_await_restart(("http://%s:8001/admin/v1/cluster-config" % permanent_ip), data=cluster_config_from_master,
+                response = post_and_await_restart(permanent_ip, ("http://%s:8001/admin/v1/cluster-config" % permanent_ip), data=cluster_config_from_master,
                              headers={"Content-type": "application/zip"}, auth=auth)
                 if response.status_code == 202:
                     set_host_name(auth, {"Content-Type": "application/xml"}, instance, permanent_ip)
