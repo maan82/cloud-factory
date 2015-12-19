@@ -61,21 +61,22 @@ def get(url, auth=None, headers=None):
 
 def post_and_await_restart(host, url, data, headers, auth=None):
     response = post(url, data, headers, auth)
-    process_response(auth, host, response)
+    return process_response(auth, host, response)
 
 
 def process_response(auth, host, response):
     if response.status_code == 202:
-        await_restart(auth, host, response)
+        return await_restart(auth, host, response)
     elif response.status_code == 204:
         print("Timestamp check not required. Response status_code : %s" % response.status_code)
+        return response
     else:
         raise Exception("Unexpected response status_code : %s" % response.status_code)
 
 
 def put_and_await_restart(host, url, data, headers, auth=None):
     response = put(url, data, headers, auth)
-    process_response(auth, host, response)
+    return process_response(auth, host, response)
 
 def await_restart(auth, host, response):
     element_tree = ElementTree.fromstring(response.text)
@@ -92,7 +93,9 @@ def await_restart(auth, host, response):
                 new_time_stamp = response.text.strip()
         except Exception:
             pass
-
+    if new_time_stamp == "" or new_time_stamp == time_stamp:
+        raise Exception("Timestamp has not changed after retries : %s " % RETRY_COUNT)
+    return response
 
 def find_instances_in_cluster(env, config):
     conn = boto.connect_ec2()
