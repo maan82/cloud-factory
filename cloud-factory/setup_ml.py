@@ -114,7 +114,7 @@ def set_host_name(auth, headers, instance, permanent_host_ip):
     hostname_data = '<host-properties xmlns="http://marklogic.com/manage"><host-name>' + permanent_host_ip + '</host-name></host-properties>'
     private_dns = get_private_dns(instance)
     print("Found private_dns : %s for master_host : %s" % (private_dns, permanent_host_ip))
-    put("http://%s:8002/manage/v2/hosts/%s/properties" % (permanent_host_ip, private_dns), hostname_data, headers, auth)
+    put_and_await_restart("http://%s:8002/manage/v2/hosts/%s/properties" % (permanent_host_ip, private_dns), hostname_data, headers, auth)
     print("Host %s configured" % permanent_host_ip)
 
 def initialize_cluster(instances, config):
@@ -151,12 +151,7 @@ def initialize_cluster(instances, config):
                 print("Joining host : %s to cluster" % permanent_ip)
                 response = post_and_await_restart(permanent_ip, ("http://%s:8001/admin/v1/cluster-config" % permanent_ip), data=cluster_config_from_master,
                              headers={"Content-type": "application/zip"}, auth=auth)
-                if response.status_code == 202:
-                    set_host_name(auth, {"Content-Type": "application/xml"}, instance, permanent_ip)
-                else:
-                    message = ("Failed to join cluster host : %s " %permanent_ip)
-                    print(message)
-                    raise Exception(message)
+                set_host_name(auth, {"Content-Type": "application/xml"}, instance, permanent_ip)
 
         else:
             message = "Failed to get joiner config"
