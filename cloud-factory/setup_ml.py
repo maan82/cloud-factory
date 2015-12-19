@@ -61,21 +61,38 @@ def get(url, auth=None, headers=None):
 
 def post_and_await_restart(host, url, data, headers, auth=None):
     response = post(url, data, headers, auth)
+    process_response(auth, host, response)
+
+
+def process_response(auth, host, response):
     if response.status_code == 202:
-        element_tree = ElementTree.fromstring(response.text)
-        ml_namespace = "http://marklogic.com/manage"
-        time_stamp = element_tree.findall("./{%s}last-startup" % ml_namespace)[0].text.strip()
-        new_time_stamp = ""
-        count = 0
-        while count < RETRY_COUNT and new_time_stamp == "" or new_time_stamp == time_stamp:
-            try:
-                count = count + 1
-                time.sleep(count)
-                response = get(("http://%s:8001/admin/v1/timestamp" % host), auth)
-                if response.status_code == 200:
-                    new_time_stamp = response.text.strip()
-            except Exception:
-                pass
+        await_restart(auth, host, response)
+    elif response.status_code == 204:
+        print("Timestamp check not required. Response status_code : %s" % response.status_code)
+    else:
+        raise Exception("Unexpected response status_code : %s" % response.status_code)
+
+
+def put_and_await_restart(host, url, data, headers, auth=None):
+    response = put(url, data, headers, auth)
+    process_response(auth, host, response)
+
+def await_restart(auth, host, response):
+    element_tree = ElementTree.fromstring(response.text)
+    ml_namespace = "http://marklogic.com/manage"
+    time_stamp = element_tree.findall("./{%s}last-startup" % ml_namespace)[0].text.strip()
+    new_time_stamp = ""
+    count = 0
+    while count < RETRY_COUNT and new_time_stamp == "" or new_time_stamp == time_stamp:
+        try:
+            count = count + 1
+            time.sleep(count)
+            response = get(("http://%s:8001/admin/v1/timestamp" % host), auth)
+            if response.status_code == 200:
+                new_time_stamp = response.text.strip()
+        except Exception:
+            pass
+
 
 def find_instances_in_cluster(env, config):
     conn = boto.connect_ec2()
@@ -124,12 +141,12 @@ def initialize_cluster(instances, config):
         if response.status_code == 200:
             joiner_config = response.text
             print(("Getting cluster-config from master : %s" % master_host))
-            master_response = post(("http://%s:8001/admin/v1/cluster-config" % master_host), {"server-config": joiner_config},
+            master_response = post(("http://%s:8001/admin/v1/cluster-config" % master_host), {"server-config": joiner_config, "group":"Default"},
                          headers={'Content-Type': 'application/x-www-form-urlencoded'}, auth=auth)
-            if master_response.status_code == 202:
+            if master_response.status_code == 200:
                 cluster_config_from_master = master_response.content
                 print("Joining host : %s to cluster" % permanent_ip)
-                response = post(("http://%s:8001/admin/v1/cluster-config" % permanent_ip), data=cluster_config_from_master,
+                response = post_and_await_restart(("http://%s:8001/admin/v1/cluster-config" % permanent_ip), data=cluster_config_from_master,
                              headers={"Content-type": "application/zip"}, auth=auth)
                 if response.status_code == 202:
                     set_host_name(auth, {"Content-Type": "application/xml"}, instance, permanent_ip)
