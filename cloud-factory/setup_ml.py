@@ -118,9 +118,9 @@ def initialize_cluster(instances, config):
     for instance in remaining_instances:
         permanent_ip = get_permanent_ip(instance)
         print("Initializing host : %s" % permanent_ip)
-        post_and_await_restart(master_host, "http://%s:8001/admin/v1/init" % permanent_ip, init_data, headers)
+        post_and_await_restart(permanent_ip, "http://%s:8001/admin/v1/init" % permanent_ip, init_data, headers)
         print("Getting server-config from host : %s" % permanent_ip)
-        response = get("http://${host}:8001/admin/v1/server-config" % permanent_ip, auth, headers={"Accept": "application/xml"})
+        response = get(("http://%s:8001/admin/v1/server-config" % permanent_ip), auth=None, headers={"Accept": "application/xml"})
         if response.status_code == 200:
             joiner_config = response.text
             print(("Getting cluster-config from master : %s" % master_host))
