@@ -9,9 +9,7 @@ Options:
     -f <file> cluster configuration file
 """
 
-import os, sys
 from docopt import docopt
-from pexpect import pxssh
 import setup_ml
 import logging
 import json

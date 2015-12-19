@@ -124,7 +124,7 @@ def initialize_cluster(instances, config):
         if response.status_code == 200:
             joiner_config = response.text
             print(("Getting cluster-config from master : %s" % master_host))
-            master_response = post(("http://%s:8001/admin/v1/cluster-config" % master_host), {"server-config", joiner_config},
+            master_response = post(("http://%s:8001/admin/v1/cluster-config" % master_host), {"server-config": joiner_config},
                          headers={'Content-Type': 'application/x-www-form-urlencoded'}, auth=auth)
             if master_response.status_code == 202:
                 cluster_config_from_master = master_response.content
