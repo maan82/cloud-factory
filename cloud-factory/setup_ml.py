@@ -21,6 +21,7 @@ import requests
 from xml.etree import ElementTree
 from getpass import getpass
 from requests.auth import HTTPDigestAuth
+import collections
 import ml_stack
 
 RETRY_COUNT = 15
@@ -157,6 +158,7 @@ def initialize_cluster(instances, config):
             message = "Failed to get joiner config"
             print(message)
             raise Exception(message)
+    return auth
 
 
 
@@ -197,6 +199,58 @@ def find_instances(env, config):
             instances.append(instance)
     return instances
 
+def create_databases(instances, config, aws_config, auth):
+    for database in config["DataVolumes"]["Databases"]:
+        create_database(auth, database, get_permanent_ip(instances[0]))
+
+    for volume_number, volume in enumerate(config["DataVolumes"], start=1):
+        for database in volume["Databases"]:
+            for forest_number in enumerate(range(database["NumberOfforestsPerDisk"]), start=1):
+                instances_count = len(instances)
+                if instances_count > 1:
+                    instances_per_zone = config["NumberOfInstancesPerZone"]
+                    instances_index = range(instances_count)
+                    rotated_index = instances_index[instances_per_zone:] + instances_index[:instances_per_zone]
+                    for instance_index, instance in enumerate(instances, start=1):
+                        instance_ip = get_permanent_ip(instance)
+                        forest_name = database["database-name"]+"-node-"+instance_index+"-forest-"+forest_number
+                        replica_instance_index = rotated_index[instance_index]
+                        replica_forest_name = database["database-name"]+"-node-" + replica_instance_index + "-forest-" + forest_number + "-replica"
+                        forest_create_body = {
+                            "forest-name": forest_name,
+                            "host": instance_ip,
+                            "database": database["database-name"],
+                            "data-directory": volume["MountDirectory"],
+                            "large-data-directory": volume["MountDirectory"],
+                            "fast-data-directory": volume["MountDirectory"],
+                            "forest-replicas": {
+                                "forest-replica": [
+                                    {
+                                        "replica-name": replica_forest_name,
+                                        "host": get_permanent_ip(instance[replica_instance_index]),
+                                        "data-directory": volume["MountDirectory"],
+                                        "large-data-directory": volume["MountDirectory"],
+                                        "fast-data-directory": volume["MountDirectory"],
+                                    }
+                                ]
+                            }
+                        }
+                        response = post(("http://%s:8002/manage/v2/forests" % instance_ip), forest_create_body,
+                                        {"Content-type": "application/json"}, auth)
+                        if response.status_code != 201:
+                            raise Exception("Failed to create forests.")
+
+
+def create_database(config, auth, database, host_ip):
+    database_name = database["database-name"]
+    database_create_body = {"database-name": database_name}
+    [database_create_body.update(database_configuration[database_name]) for database_configuration in config["DataBaseConfigurations"] if database_name in database_configuration]
+
+    response = post(("http://%s:8002/manage/v2/databases" % host_ip), database_create_body,
+                    {"Content-Type": "application/json"}, auth)
+    if response.status_code != 201:
+        raise Exception("Failed database creation")
+
 
 if __name__ == "__main__":
     arguments = docopt(__doc__)
@@ -215,7 +269,8 @@ if __name__ == "__main__":
         config = json.load(config_file)
 
     instances = find_instances(env, config)
+    sorted_instances = sorted(instances, key=lambda instance: instance.placement)
 
     print("Found instances count : %d " % len(instances))
-    initialize_cluster(instances, config)
-
+    auth = initialize_cluster(sorted_instances, config)
+    create_databases(sorted_instances, config, aws_config, auth)
