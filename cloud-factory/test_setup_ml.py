@@ -109,5 +109,94 @@ class TestSetupML(unittest.TestCase):
                                      headers={"Content-Type": "application/json"}, data={"database-name": "ass", "enabled": "true"},
                                      allow_redirects=True, auth=auth)
 
+    @mock.patch("setup_ml.requests")
+    def test_create_databases_when_non_empty_db_config(self, mock_requests):
+
+        auth = HTTPDigestAuth("admin", "password")
+        config = {
+          "NumberOfInstancesPerZone": 2,
+          "DataVolumes": [{
+                "Encrypted": "false",
+                "VolumeType": "gp2",
+                "Iops": "10",
+                "Size": "512",
+                "FromSnapshot": "true",
+                "SnapshotId": "snap-41163b47",
+                "DeletionPolicy": "Delete",
+                "Device": "/dev/sdc",
+                "MountDirectory": "/var/opt/data",
+                "Databases": [
+                    {
+                        "database-name": "ass",
+                        "NumberOfforestsPerDisk": "2"
+                    }
+                ]
+            }],
+            "DataBaseConfigurations": [{
+                "ass": {
+                    "enabled": "true"
+                }
+            }]}
+        permanent_ip_address_1 = "1"
+        permanent_ip_address_2 = "2"
+        permanent_ip_address_3 = "3"
+        permanent_ip_address_4 = "4"
+        permanent_ip_address_5 = "5"
+        permanent_ip_address_6 = "6"
+        instances = [mock.MagicMock(interfaces=[mock.MagicMock(private_ip_address="192"), mock.MagicMock(private_ip_address=permanent_ip_address_1)]),
+                     mock.MagicMock(interfaces=[mock.MagicMock(private_ip_address="192"), mock.MagicMock(private_ip_address=permanent_ip_address_2)]),
+                     mock.MagicMock(interfaces=[mock.MagicMock(private_ip_address="192"), mock.MagicMock(private_ip_address=permanent_ip_address_3)]),
+                     mock.MagicMock(interfaces=[mock.MagicMock(private_ip_address="192"), mock.MagicMock(private_ip_address=permanent_ip_address_4)]),
+                     mock.MagicMock(interfaces=[mock.MagicMock(private_ip_address="192"), mock.MagicMock(private_ip_address=permanent_ip_address_5)]),
+                     mock.MagicMock(interfaces=[mock.MagicMock(private_ip_address="192"), mock.MagicMock(private_ip_address=permanent_ip_address_6)])]
+
+        mock_post = mock.MagicMock(return_value=mock.MagicMock(status_code=201))
+        mock_requests.post = mock_post
+
+        setup_ml.create_databases(instances, config, auth, ["b", "c", "e"])
+
+        mock_post.assert_any_call("http://" + permanent_ip_address_1 + ":8002/manage/v2/databases",
+                                     headers={"Content-Type": "application/json"}, data={"database-name": "ass", "enabled": "true"},
+                                     allow_redirects=True, auth=auth)
+
+        assert_forest_was_created(mock_post, permanent_ip_address_1, "ass-forest-001-node-001", permanent_ip_address_3, "R-ass-forest-001-node-003", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_1, "ass-forest-002-node-001", permanent_ip_address_4, "R-ass-forest-002-node-004", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_2, "ass-forest-003-node-002", permanent_ip_address_4, "R-ass-forest-003-node-004", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_2, "ass-forest-004-node-002", permanent_ip_address_5, "R-ass-forest-004-node-005", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_3, "ass-forest-005-node-003", permanent_ip_address_5, "R-ass-forest-005-node-005", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_3, "ass-forest-006-node-003", permanent_ip_address_6, "R-ass-forest-006-node-006", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_4, "ass-forest-007-node-004", permanent_ip_address_6, "R-ass-forest-007-node-006", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_4, "ass-forest-008-node-004", permanent_ip_address_1, "R-ass-forest-008-node-001", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_5, "ass-forest-009-node-005", permanent_ip_address_1, "R-ass-forest-009-node-001", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_5, "ass-forest-010-node-005", permanent_ip_address_2, "R-ass-forest-010-node-002", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_6, "ass-forest-011-node-006", permanent_ip_address_2, "R-ass-forest-011-node-002", auth)
+        assert_forest_was_created(mock_post, permanent_ip_address_6, "ass-forest-012-node-006", permanent_ip_address_3, "R-ass-forest-012-node-003", auth)
+
+def assert_forest_was_created(mock_post, host_ip, forest_name, replica_host_ip, replica_forest_name, auth):
+        forest_create_body = {
+            "forest-name": forest_name,
+            "host": host_ip,
+            "database": "ass",
+            "data-directory": "/var/opt/data",
+            "large-data-directory": "/var/opt/data",
+            "fast-data-directory": "/var/opt/data",
+            "forest-replicas": {
+                "forest-replica": [
+                    {
+                        "replica-name": replica_forest_name,
+                        "host": replica_host_ip,
+                        "data-directory": "/var/opt/data",
+                        "large-data-directory": "/var/opt/data",
+                        "fast-data-directory": "/var/opt/data",
+                    }
+                ]
+            }
+        }
+
+        mock_post.assert_any_call("http://" + host_ip + ":8002/manage/v2/forests",
+                                     headers={"Content-Type": "application/json"}, data=forest_create_body,
+                                     allow_redirects=True, auth=auth)
+
+
 if __name__ == '__main__':
     unittest.main()

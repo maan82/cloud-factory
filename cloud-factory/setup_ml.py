@@ -31,9 +31,9 @@ def print_response(url, response):
     print("Url : %s status_code : %s response : %s" % (url, response.status_code, response.text))
 
 def post(url, data, headers, auth=None):
-    print("Post url : " + url)
+    print(("Post url : %s data : %s headers : %s" % (url, data, headers)))
     if auth is not None:
-	print("auth : "+str(auth))
+	    print("auth : "+str(auth))
     else:
         print("auth is None")
     r = requests.post(url, headers=headers, data=data, allow_redirects=True, auth=auth)
@@ -120,7 +120,7 @@ def set_host_name(auth, headers, instance, permanent_host_ip):
 
 def initialize_cluster(instances, config):
     master_host = get_permanent_ip(instances[0])
-    headers = {'Content-Type': 'application/xml'}
+    headers = get_xml_content_type_header()
     print("Initializing Bootstrap Host %s" % master_host)
     init_data = '<init xmlns="http://marklogic.com/manage"><license-key>'+config["license-key"]+'</license-key><licensee>'+config["licensee"]+'</licensee></init>'
     post_and_await_restart(master_host, ("http://%s:8001/admin/v1/init" % master_host), init_data, headers)
@@ -152,43 +152,13 @@ def initialize_cluster(instances, config):
                 print("Joining host : %s to cluster" % permanent_ip)
                 response = post_and_await_restart(permanent_ip, ("http://%s:8001/admin/v1/cluster-config" % permanent_ip), data=cluster_config_from_master,
                              headers={"Content-type": "application/zip"}, auth=auth)
-                set_host_name(auth, {"Content-Type": "application/xml"}, instance, permanent_ip)
+                set_host_name(auth, get_xml_content_type_header(), instance, permanent_ip)
 
         else:
             message = "Failed to get joiner config"
             print(message)
             raise Exception(message)
     return auth
-
-
-
-
-"""
-eval "oh=(${other_hosts[*]})"
-for host in ${oh[@]} ; do
-
-  echo "Initializing Other Host ${host}"
-
-  curl_and_await_restart '-s' '-S' '-X' 'POST' '-d' "'license-key=${license_key}&licensee=${licensee}'" "'http://${host}:8001/admin/v1/init'"
-
-  echo "Getting server-config from ${host}"
-  joiner_config=`curl -s -S -X GET -H "Accept: application/xml" http://${host}:8001/admin/v1/server-config`
-
-  echo "Getting cluster-config from ${master_host}"
-  curl --digest --user "admin:${password}" -s -S -X POST -o /tmp/cluster-config.zip -d "group=Default" --data-urlencode "server-config=${joiner_config}" -H "Content-type: application/x-www-form-urlencoded" http://${master_host}:8001/admin/v1/cluster-config
-
-  echo "Joining ${host} to cluster"
-  curl_and_await_restart '-s' '-S' '-X' 'POST' '-H' "'Content-type: application/zip'" '--data-binary' '@/tmp/cluster-config.zip' "'http://${host}:8001/admin/v1/cluster-config'"
-
-  host_underscores=${host//./_}
-  hostname=$(eval echo \$host_${host_underscores})
-
-  echo "Setting hostname for ${host} : ${hostname}"
-
-  curl_and_await_restart '-s' '-S' '--digest' '--user' "'admin:${password}'" '-X' 'PUT' '-H' "'Content-type: application/xml'" '-d' "\"<host-properties xmlns='http://marklogic.com/manage'><host-name>${host}</host-name></host-properties>\"" "'http://${host}:8002/manage/v2/hosts/${hostname}/properties'"
-
-done
-"""
 
 
 def find_instances(env, config):
@@ -199,23 +169,25 @@ def find_instances(env, config):
             instances.append(instance)
     return instances
 
-def create_databases(instances, config, aws_config, auth):
-    for key in config["DataBaseConfigurations"]:
-        create_database(auth, key, get_permanent_ip(instances[0]))
+def create_databases(instances, config, auth, availability_zones):
+    for database_configuration in config["DataBaseConfigurations"]:
+        for database_name in database_configuration:
+            create_database(config, auth, database_name, get_permanent_ip(instances[0]))
 
+    forest_index = 1
     for volume_number, volume in enumerate(config["DataVolumes"], start=1):
         for database in volume["Databases"]:
-            for forest_number in enumerate(range(database["NumberOfforestsPerDisk"]), start=1):
-                instances_count = len(instances)
-                if instances_count > 1:
-                    instances_per_zone = config["NumberOfInstancesPerZone"]
-                    instances_index = range(instances_count)
-                    rotated_index = instances_index[instances_per_zone:] + instances_index[:instances_per_zone]
-                    for instance_index, instance in enumerate(instances, start=1):
+            for instance_index, instance in enumerate(instances):
+                for forest_number, forest in enumerate(range(int(database["NumberOfforestsPerDisk"])), start=1):
+                    instances_count = len(instances)
+                    if instances_count > 1:
+                        instances_per_zone = config["NumberOfInstancesPerZone"]
+                        instances_index = range(instances_count)
+                        rotated_index = instances_index[instances_per_zone + (forest_number - 1):] + instances_index[:instances_per_zone + (forest_number - 1)]
                         instance_ip = get_permanent_ip(instance)
-                        forest_name = database["database-name"]+"-node-"+instance_index+"-forest-"+forest_number
+                        forest_name = database["database-name"]+"-forest-"+format_number(forest_index)+"-node-"+format_number(instance_index+1)
                         replica_instance_index = rotated_index[instance_index]
-                        replica_forest_name = database["database-name"]+"-node-" + replica_instance_index + "-forest-" + forest_number + "-replica"
+                        replica_forest_name = "R-"+database["database-name"]+ "-forest-" + format_number(forest_index) +"-node-" + format_number(replica_instance_index+1)
                         forest_create_body = {
                             "forest-name": forest_name,
                             "host": instance_ip,
@@ -227,7 +199,7 @@ def create_databases(instances, config, aws_config, auth):
                                 "forest-replica": [
                                     {
                                         "replica-name": replica_forest_name,
-                                        "host": get_permanent_ip(instance[replica_instance_index]),
+                                        "host": get_permanent_ip(instances[replica_instance_index]),
                                         "data-directory": volume["MountDirectory"],
                                         "large-data-directory": volume["MountDirectory"],
                                         "fast-data-directory": volume["MountDirectory"],
@@ -236,18 +208,28 @@ def create_databases(instances, config, aws_config, auth):
                             }
                         }
                         response = post(("http://%s:8002/manage/v2/forests" % instance_ip), forest_create_body,
-                                        {"Content-type": "application/json"}, auth)
+                                        get_json_content_type_header(), auth)
+                        forest_index += 1
                         if response.status_code != 201:
                             raise Exception("Failed to create forests.")
 
+def format_number(number):
+    return "%03d" % number
+
+def get_json_content_type_header():
+    return {"Content-Type": "application/json"}
+
+def get_xml_content_type_header():
+    return {"Content-Type": "application/xml"}
 
 def create_database(config, auth, database_name, host_ip):
-    database_name = database_name
     database_create_body = {"database-name": database_name}
-    [database_create_body.update(database_configuration[database_name]) for database_configuration in config["DataBaseConfigurations"] if database_name in database_configuration]
+    for database_configuration in config["DataBaseConfigurations"]:
+        if database_name in database_configuration:
+            database_create_body.update(database_configuration[database_name])
 
     response = post(("http://%s:8002/manage/v2/databases" % host_ip), database_create_body,
-                    {"Content-Type": "application/json"}, auth)
+                    get_json_content_type_header(), auth)
     if response.status_code != 201:
         raise Exception("Failed database creation")
 
