@@ -211,7 +211,7 @@ def create_databases(instances, config, auth):
                                 ]
                             }
                         }
-                        response = post(("http://%s:8002/manage/v2/forests" % instance_ip), json.dump(forest_create_body),
+                        response = post(("http://%s:8002/manage/v2/forests" % instance_ip), json.dumps(forest_create_body),
                                         get_json_content_type_header(), auth)
                         forest_index += 1
                         if response.status_code != 201:
@@ -232,7 +232,7 @@ def create_database(config, auth, database_name, host_ip):
         if database_name in database_configuration:
             database_create_body.update(database_configuration[database_name])
 
-    response = post(("http://%s:8002/manage/v2/databases" % host_ip), json.dump(database_create_body),
+    response = post(("http://%s:8002/manage/v2/databases" % host_ip), json.dumps(database_create_body),
                     get_json_content_type_header(), auth)
     if response.status_code != 201:
         raise Exception("Failed database creation")
