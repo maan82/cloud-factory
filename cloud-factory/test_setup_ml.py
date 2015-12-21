@@ -1,3 +1,4 @@
+import json
 import unittest
 import mock
 import setup_ml
@@ -86,7 +87,7 @@ class TestSetupML(unittest.TestCase):
         setup_ml.create_database(config, auth, "ass", host_ip)
 
         mock_post.assert_called_with("http://" + host_ip + ":8002/manage/v2/databases",
-                                     headers={"Content-Type": "application/json"}, data={"database-name": "ass"},
+                                     headers={"Content-Type": "application/json"}, data=json.dumps({"database-name": "ass"}),
                                      allow_redirects=True, auth=auth)
 
     @mock.patch("setup_ml.requests")
@@ -106,7 +107,7 @@ class TestSetupML(unittest.TestCase):
         setup_ml.create_database(config, auth, "ass", host_ip)
 
         mock_post.assert_called_with("http://" + host_ip + ":8002/manage/v2/databases",
-                                     headers={"Content-Type": "application/json"}, data={"database-name": "ass", "enabled": "true"},
+                                     headers={"Content-Type": "application/json"}, data=json.dumps({"database-name": "ass", "enabled": "true"}),
                                      allow_redirects=True, auth=auth)
 
     @mock.patch("setup_ml.requests")
@@ -153,10 +154,10 @@ class TestSetupML(unittest.TestCase):
         mock_post = mock.MagicMock(return_value=mock.MagicMock(status_code=201))
         mock_requests.post = mock_post
 
-        setup_ml.create_databases(instances, config, auth, ["b", "c", "e"])
+        setup_ml.create_databases(instances, config, auth)
 
         mock_post.assert_any_call("http://" + permanent_ip_address_1 + ":8002/manage/v2/databases",
-                                     headers={"Content-Type": "application/json"}, data={"database-name": "ass", "enabled": "true"},
+                                     headers={"Content-Type": "application/json"}, data=json.dumps({"database-name": "ass", "enabled": "true"}),
                                      allow_redirects=True, auth=auth)
 
         assert_forest_was_created(mock_post, permanent_ip_address_1, "ass-forest-001-node-001", permanent_ip_address_3, "R-ass-forest-001-node-003", auth)
@@ -194,7 +195,7 @@ def assert_forest_was_created(mock_post, host_ip, forest_name, replica_host_ip, 
         }
 
         mock_post.assert_any_call("http://" + host_ip + ":8002/manage/v2/forests",
-                                     headers={"Content-Type": "application/json"}, data=forest_create_body,
+                                     headers={"Content-Type": "application/json"}, data=json.dumps(forest_create_body),
                                      allow_redirects=True, auth=auth)
 
 
