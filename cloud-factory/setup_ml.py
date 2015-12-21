@@ -31,7 +31,11 @@ def print_response(url, response):
     print("Url : %s status_code : %s response : %s" % (url, response.status_code, response.text))
 
 def post(url, data, headers, auth=None):
-    print(("Post url : %s data : %s headers : %s" % (url, data, headers)))
+    if isinstance(data, dict):
+        print(("Post url : %s data : %s headers : %s" % (url, data, headers)))
+    else:
+        print(("Post url : %s data : %s headers : %s" % (url, "Non dictionery data", headers)))
+
     if auth is not None:
 	    print("auth : "+str(auth))
     else:
