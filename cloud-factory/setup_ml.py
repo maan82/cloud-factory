@@ -41,7 +41,7 @@ def post(url, data, headers, auth=None):
     return r
 
 def put(url, data, headers, auth=None):
-    print("Post url : " + url)
+    print(("Post url : %s data : %s headers : %s" % (url, data, headers)))
     if auth is not None:
         print("auth : "+str(auth))
     else:
@@ -207,7 +207,7 @@ def create_databases(instances, config, auth, availability_zones):
                                 ]
                             }
                         }
-                        response = post(("http://%s:8002/manage/v2/forests" % instance_ip), forest_create_body,
+                        response = post(("http://%s:8002/manage/v2/forests" % instance_ip), json.dump(forest_create_body),
                                         get_json_content_type_header(), auth)
                         forest_index += 1
                         if response.status_code != 201:
@@ -228,10 +228,35 @@ def create_database(config, auth, database_name, host_ip):
         if database_name in database_configuration:
             database_create_body.update(database_configuration[database_name])
 
-    response = post(("http://%s:8002/manage/v2/databases" % host_ip), database_create_body,
+    response = post(("http://%s:8002/manage/v2/databases" % host_ip), json.dump(database_create_body),
                     get_json_content_type_header(), auth)
     if response.status_code != 201:
         raise Exception("Failed database creation")
+
+
+def create_forest_replicas(master_instance, replica_instances, database_name):
+    replica_list = []
+    for index, instance in enumerate(replica_instances, start=1):
+        replica_forest_name = "R-"+database_name+ "-forest-" + format_number(index)
+        permanent_ip = get_permanent_ip(instance)
+        replica_list.append({
+            "replica-name": replica_forest_name,
+            "host": permanent_ip
+        })
+
+    create_forest_body = {
+        "forest-name": database_name,
+        "database": database_name,
+        "forest-replica": [replica_list]
+    }
+
+    response = put(("http://%s:8002/manage/v2/forests/%s/properties" % (get_permanent_ip(master_instance), database_name)), json.dumps(create_forest_body),
+                    get_json_content_type_header(), auth)
+
+    if response.status_code != 204:
+        raise Exception("Failed to create replica forest : %s on host : %s" % (replica_forest_name, permanent_ip))
+
+
 
 
 if __name__ == "__main__":
@@ -256,4 +281,8 @@ if __name__ == "__main__":
 
     print("Found instances count : %d " % len(instances))
     auth = initialize_cluster(sorted_instances, config)
-    create_databases(sorted_instances, config, aws_config, auth)
+
+    create_databases(sorted_instances, config, auth)
+
+    for database_name in config["DataBasesToConfigureForestReplication"]:
+        create_forest_replicas(sorted_instances[0], sorted_instances[1:], database_name)

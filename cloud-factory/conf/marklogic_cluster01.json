@@ -92,6 +92,7 @@
   "DataBaseConfigurations" : [{
     "ass" : {}
   }],
+  "DataBasesToConfigureForestReplication" : ["App-Services", "Extensions", "Fab", "Last-Login", "Meters", "Modules", "Schemas", "Security", "Triggers"],
   "license-key": "B581-1E81-7883-3C11-D385-0811-EA07-683A-CD4E-437C-9BEC-12E2-17A8-B5C1-3EA1-7E8B-7C14-E227-29BB-C16E-7AA8-3700",
   "licensee": "Ravinder - Development",
   "Alarms": [
