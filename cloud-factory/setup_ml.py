@@ -173,7 +173,7 @@ def find_instances(env, config):
             instances.append(instance)
     return instances
 
-def create_databases(instances, config, auth, availability_zones):
+def create_databases(instances, config, auth):
     for database_configuration in config["DataBaseConfigurations"]:
         for database_name in database_configuration:
             create_database(config, auth, database_name, get_permanent_ip(instances[0]))
