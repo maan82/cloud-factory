@@ -73,10 +73,7 @@ class TestSetupML(unittest.TestCase):
 
     @mock.patch("setup_ml.requests")
     def test_create_database_when_empty_db_config(self, mock_requests):
-        database = {
-            "database-name": "ass",
-            "NumberOfforestsPerDisk": "2"
-        }
+
         auth = HTTPDigestAuth("admin", "password")
         host_ip = "192.168.0.1"
         config = {"DataBaseConfigurations": [{
@@ -86,7 +83,7 @@ class TestSetupML(unittest.TestCase):
         mock_post = mock.MagicMock(return_value=mock.MagicMock(status_code=201))
         mock_requests.post = mock_post
 
-        setup_ml.create_database(config, auth, database, host_ip)
+        setup_ml.create_database(config, auth, "ass", host_ip)
 
         mock_post.assert_called_with("http://" + host_ip + ":8002/manage/v2/databases",
                                      headers={"Content-Type": "application/json"}, data={"database-name": "ass"},
@@ -94,10 +91,7 @@ class TestSetupML(unittest.TestCase):
 
     @mock.patch("setup_ml.requests")
     def test_create_database_when_non_empty_db_config(self, mock_requests):
-        database = {
-            "database-name": "ass",
-            "NumberOfforestsPerDisk": "2"
-        }
+
         auth = HTTPDigestAuth("admin", "password")
         host_ip = "192.168.0.1"
         config = {"DataBaseConfigurations": [{
@@ -109,7 +103,7 @@ class TestSetupML(unittest.TestCase):
         mock_post = mock.MagicMock(return_value=mock.MagicMock(status_code=201))
         mock_requests.post = mock_post
 
-        setup_ml.create_database(config, auth, database, host_ip)
+        setup_ml.create_database(config, auth, "ass", host_ip)
 
         mock_post.assert_called_with("http://" + host_ip + ":8002/manage/v2/databases",
                                      headers={"Content-Type": "application/json"}, data={"database-name": "ass", "enabled": "true"},

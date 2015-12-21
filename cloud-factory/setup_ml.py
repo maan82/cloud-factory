@@ -200,8 +200,8 @@ def find_instances(env, config):
     return instances
 
 def create_databases(instances, config, aws_config, auth):
-    for database in config["DataVolumes"]["Databases"]:
-        create_database(auth, database, get_permanent_ip(instances[0]))
+    for key in config["DataBaseConfigurations"]:
+        create_database(auth, key, get_permanent_ip(instances[0]))
 
     for volume_number, volume in enumerate(config["DataVolumes"], start=1):
         for database in volume["Databases"]:
@@ -241,8 +241,8 @@ def create_databases(instances, config, aws_config, auth):
                             raise Exception("Failed to create forests.")
 
 
-def create_database(config, auth, database, host_ip):
-    database_name = database["database-name"]
+def create_database(config, auth, database_name, host_ip):
+    database_name = database_name
     database_create_body = {"database-name": database_name}
     [database_create_body.update(database_configuration[database_name]) for database_configuration in config["DataBaseConfigurations"] if database_name in database_configuration]
 
@@ -269,7 +269,8 @@ if __name__ == "__main__":
         config = json.load(config_file)
 
     instances = find_instances(env, config)
-    sorted_instances = sorted(instances, key=lambda instance: instance.placement)
+    sorted_instances = sorted(instances, key=lambda instance: get_permanent_ip(instance))
+    sorted_instances = sorted(sorted_instances, key=lambda instance: instance.placement)
 
     print("Found instances count : %d " % len(instances))
     auth = initialize_cluster(sorted_instances, config)
