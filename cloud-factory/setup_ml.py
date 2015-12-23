@@ -217,6 +217,22 @@ def create_databases(instances, config, auth):
                         if response.status_code != 201:
                             raise Exception("Failed to create forests.")
 
+
+def add_forests(master_instance, other_instances, database_name):
+    for instance_index, instance in enumerate(other_instances):
+        instance_ip = get_permanent_ip(instance)
+        forest_name = database_name + "-forest-" + format_number(instance_index + 1) + "-node-" + format_number(
+            instance_index + 1)
+        forest_create_body = {
+            "forest-name": forest_name,
+            "host": instance_ip,
+            "database": database_name,
+        }
+        response = post(("http://%s:8002/manage/v2/forests" % instance_ip), json.dumps(forest_create_body),
+                        get_json_content_type_header(), auth)
+        if response.status_code != 201:
+            raise Exception("Failed to create forests.")
+
 def format_number(number):
     return "%03d" % number
 
@@ -290,3 +306,6 @@ if __name__ == "__main__":
 
     for database_name in config["DataBasesToConfigureForestReplication"]:
         create_forest_replicas(sorted_instances[0], sorted_instances[1:], database_name)
+
+    for database_name in config["DataBasesToAddForestsOnConfigVolume"]:
+        add_forests(sorted_instances[0], sorted_instances[1:], database_name)

@@ -28,4 +28,6 @@ print config_volumes
 10.221.16.180 us-east-1b
 
 [u'10.221.129.243', u'10.221.73.249', u'10.221.15.153', u'10.221.156.252', u'10.221.66.196', u'10.221.16.180']
+
+for ip in "10.221.156.252" "10.221.129.243" "10.221.66.196" "10.221.73.249" "10.221.15.153" "10.221.16.180"; do ssh -A -o StrictHostKeyChecking=no ec2-user@$ip "sudo service MarkLogic stop && sudo umount /dev/xvdc && sudo mkfs -t ext4 /dev/xvdc && sudo mount /dev/xvdc /var/opt/data && df -h /var/opt/data && sudo chown daemon:daemon /var/opt/data && sudo service MarkLogic start"; done
 """
