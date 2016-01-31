@@ -1,0 +1,53 @@
+{
+  "Type": "Application",
+  "Component": "ass",
+  "AMIImageId": "ami-a4326fce",
+  "Zones": [ "b", "c", "e" ],
+  "MinMaxNumberOfInstancesPerZone": ["0", "1", "2", "3", "4"],
+  "InstanceType": "t2.small",
+  "EbsOptimized": "false",
+  "IamInstanceProfile": "rasingh-MarkLogic-role",
+  "KeyName": "rasingh-MarkLogic",
+  "Tenancy": "default",
+  "LoadBalancer": {
+    "AccessLoggingPolicy": {
+      "S3BucketName": "sandbox-dev-bucket",
+      "S3BucketPrefix": "rasingh/load-balancer/475882391631/ass",
+      "Enabled": "true",
+      "EmitInterval" : "5"
+    },
+    "AppCookieStickinessPolicy": [
+      {
+        "CookieName": "SessionID",
+        "PolicyName": "ASSSession"
+      }
+    ],
+    "ConnectionDrainingPolicy": {
+      "Enabled": "true",
+      "Timeout": "60"
+    },
+    "CrossZone": "true",
+    "Listeners": [
+      {
+        "LoadBalancerPort": "8080",
+        "InstancePort": "8080",
+        "Protocol": "HTTP",
+        "PolicyNames": [
+          "ASSSession"
+        ]
+      }
+    ],
+    "HealthCheck": {
+      "Target": "HTTP:8080/",
+      "HealthyThreshold": "3",
+      "UnhealthyThreshold": "5",
+      "Interval": "10",
+      "Timeout": "5"
+    },
+    "Scheme": "internal"
+  },
+  "LoadBalancedPorts": {
+    "FromPort": 8080,
+    "ToPort": 8080
+  }
+}
