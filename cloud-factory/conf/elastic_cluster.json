@@ -1,0 +1,67 @@
+{
+  "Type": "Elasticsearch",
+  "Component": "Cluster01",
+  "ElasticsearchAMIImageId": "ami-5bfcb131",
+  "NumberOfInstancesPerZone": 2,
+  "InstanceType": "t2.small",
+  "EbsOptimized": "false",
+  "IamInstanceProfile": "rasingh-MarkLogic-role",
+  "KeyName": "rasingh-MarkLogic",
+  "Tenancy": "default",
+  "LoadBalancer": {
+    "AccessLoggingPolicy": {
+      "S3BucketName": "sandbox-dev-bucket",
+      "S3BucketPrefix": "rasingh/load-balancer/475882391631/ml-master",
+      "Enabled": "true",
+      "EmitInterval" : "5"
+    },
+    "AppCookieStickinessPolicy": [
+      {
+        "CookieName": "SessionID",
+        "PolicyName": "MLSession"
+      }
+    ],
+    "ConnectionDrainingPolicy": {
+      "Enabled": "true",
+      "Timeout": "60"
+    },
+    "CrossZone": "true",
+    "Listeners": [
+      {
+        "LoadBalancerPort": "9200",
+        "InstancePort": "9200",
+        "Protocol": "HTTP",
+        "PolicyNames": [
+          "MLSession"
+        ]
+      }
+    ],
+    "HealthCheck": {
+      "Target": "HTTP:9200/",
+      "HealthyThreshold": "3",
+      "UnhealthyThreshold": "5",
+      "Interval": "10",
+      "Timeout": "5"
+    },
+    "Scheme": "internal"
+  },
+  "LoadBalancedPorts": {
+    "FromPort": 9200,
+    "ToPort": 9200
+  },
+  "ClusterPorts":  {
+    "FromPort": 9300,
+    "ToPort": 9400
+  },
+  "DataVolumes": [{
+    "Encrypted": "false",
+    "VolumeType": "gp2",
+    "Iops": "10",
+    "Size": "512",
+    "FromSnapshot": "true",
+    "SnapshotId": "snap-41163b47",
+    "DeletionPolicy": "Delete",
+    "Device" : "/dev/sdc",
+    "MountDirectory":"/var/opt/data"
+  }]
+}
