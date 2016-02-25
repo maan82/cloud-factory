@@ -3,4 +3,6 @@
 .idea/workspace.xml
 *.iml
 .idea/
-
+.idea/cloud-factory.iml
+.idea/misc.xml
+.idea/workspace.xml
