@@ -1,7 +1,7 @@
 {
   "Type": "Elasticsearch",
   "Component": "Cluster01",
-  "ElasticsearchAMIImageId": "ami-5bfcb131",
+  "ElasticsearchAMIImageId": "ami-083a0b62",
   "NumberOfInstancesPerZone": 2,
   "InstanceType": "t2.small",
   "EbsOptimized": "false",

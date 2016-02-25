@@ -20,7 +20,7 @@ import boto
 
 
 def get_name_prefix(env, config):
-    return env + config["Type"] + config["Component"]
+    return "env-" + env + "type-"+ config["Type"] +"component"+ config["Component"]
 
 def create_name(base, az, instanceNumber, env, config):
     return get_name_prefix(env, config) + base + az + str(instanceNumber)
@@ -36,19 +36,13 @@ def get_private_subnets(aws_config):
 
 def create_key_value_tags(config, base, az, instanceNumber, env):
     tags = []
-    tags.append(ec2.Tag("name", get_name_prefix(env, config) + "-" + base + "-zone-" + az + "-instance-" + str(instanceNumber)))
-    tags.append(ec2.Tag("env", env))
-    tags.append(ec2.Tag("componentType", config["Type"]))
-    tags.append(ec2.Tag("component", config["Component"]))
-    tags.append(ec2.Tag("zone", az))
-    tags.append(ec2.Tag("instance", str(instanceNumber)))
-    tags.append(ec2.Tag("type", base))
+    tags.append(ec2.Tag("Name", get_name_prefix(env, config) + "-base-" + base + "-zone-" + az + "-instance-" + str(instanceNumber)))
     return tags
 
 
 def create_autoscalling_tags(config, base, az, instanceNumber, env):
     tags = []
-    tags.append(autoscaling.Tag("name", get_name_prefix(env, config) + "-" + base + "-zone-" + az + "-instance-" + str(instanceNumber), True))
+    tags.append(autoscaling.Tag("Name", get_name_prefix(env, config) + "-base-" + base + "-zone-" + az + "-instance-" + str(instanceNumber), True))
     return tags
 
 
@@ -75,7 +69,6 @@ def create_launch_config(aws_config, config, instance_type, az, instance_number,
 
     with open ("json_to_environment.py", "r") as format_volumes_file:
         environment_variables_file_string=format_volumes_file.read()
-
     launch_configuration.UserData = Base64(Join('', [
         "#!/bin/bash\n",
         'echo \''+json.dumps(instance_config)+'\' > /etc/instance.conf\n',
@@ -84,13 +77,13 @@ def create_launch_config(aws_config, config, instance_type, az, instance_number,
         'cat > /opt/custom-elasticsearch/attach_volumes.py <<EOF\n'+attach_volumes_file_string+'\nEOF\n',
         'cat > /opt/custom-elasticsearch/format_volumes.py <<EOF\n'+format_volumes_file_string+'\nEOF\n',
         'cat > /opt/custom-elasticsearch/json_to_environment.py <<EOF\n'+environment_variables_file_string+'\nEOF\n',
+        'sudo service elasticsearch stop\n',
         'python /opt/custom-elasticsearch/attach_volumes.py',
         "ENVIRONMENT_VARIABLES=\"",
                {
                 "Ref":"EnvironmentVariables"
                },'\"\n',
         'echo $ENVIRONMENT_VARIABLES > /var/environment.json\n',
-        'sudo service elasticsearch stop\n',
         'sudo python /opt/custom-elasticsearch/json_to_environment.py /var/environment.json >> /etc/environment\n',
         'source /etc/environment\n',
         'sudo service elasticsearch start'
