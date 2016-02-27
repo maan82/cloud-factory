@@ -20,7 +20,7 @@ import boto
 
 
 def get_name_prefix(env, config):
-    return "env-" + env + "type-"+ config["Type"] +"component"+ config["Component"]
+    return "env" + env + "type"+ config["Type"] +"component"+ config["Component"]
 
 def create_name(base, az, instanceNumber, env, config):
     return get_name_prefix(env, config) + base + az + str(instanceNumber)
@@ -69,6 +69,10 @@ def create_launch_config(aws_config, config, instance_type, az, instance_number,
 
     with open ("json_to_environment.py", "r") as format_volumes_file:
         environment_variables_file_string=format_volumes_file.read()
+
+    with open ("json_to_environment.py", "r") as format_volumes_file:
+        environment_variables_file_string=format_volumes_file.read()
+
     launch_configuration.UserData = Base64(Join('', [
         "#!/bin/bash\n",
         'echo \''+json.dumps(instance_config)+'\' > /etc/instance.conf\n',
@@ -78,7 +82,7 @@ def create_launch_config(aws_config, config, instance_type, az, instance_number,
         'cat > /opt/custom-elasticsearch/format_volumes.py <<EOF\n'+format_volumes_file_string+'\nEOF\n',
         'cat > /opt/custom-elasticsearch/json_to_environment.py <<EOF\n'+environment_variables_file_string+'\nEOF\n',
         'sudo service elasticsearch stop\n',
-        'python /opt/custom-elasticsearch/attach_volumes.py',
+        'python /opt/custom-elasticsearch/attach_volumes.py\n',
         "ENVIRONMENT_VARIABLES=\"",
                {
                 "Ref":"EnvironmentVariables"
@@ -273,7 +277,7 @@ if __name__ == '__main__':
 
     env = arguments["ENV"].lower()
 
-    with open('conf/aws_config.json') as aws_config_file:
+    with open('../conf/aws_config.json') as aws_config_file:
         aws_config = json.load(aws_config_file)
 
     with open(arguments["-f"]) as config_file:
@@ -283,7 +287,7 @@ if __name__ == '__main__':
         "VpcId": aws_config["VpcId"]
     }
 
-    zones = config.get("Zones", aws_config["Zones"])
+    zones = config.get("InstanceZones", config["InstanceZones"])
 
     template = Template()
     template.add_version("2010-09-09")
@@ -309,7 +313,7 @@ if __name__ == '__main__':
     instance_type = Parameter(
         "InstanceType",
         Default="t2.small",
-        AllowedValues=["t2.micro", "t2.small", "t2.medium", "t2.large", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge", "c4.8xlarge", "c3.large", "c3.xlarge", "c3.2xlarge", "c3.4xlarge", "c3.8xlarge", "r3.large", "r3.xlarge", "r3.2xlarge", "r3.4xlarge", "r3.8xlarge", "i2.xlarge", "i2.2xlarge", "i2.4xlarge", "i2.8xlarge", "d2.xlarge", "d2.2xlarge", "d2.4xlarge", "d2.8xlarge", "g2.2xlarge", "g2.8xlarge"],
+        AllowedValues=[instance_type_name for instance_type_name in aws_config["InstanceTypes"]],
         Type="String",
         Description="Set type of EC2 instance to launch.",
     )
@@ -319,7 +323,7 @@ if __name__ == '__main__':
         "EnvironmentVariables",
         Default="{}",
         Type="String",
-        Description="Simple key value json to set environment variables.For example if you want to set ES_HEAP_SIZE and LOG_DIR for elasticsearch use {'ES_HEAP_SIZE':'1g', 'LOG_DIR': '<PATH_FOR_LOG_FILE>'}",
+        Description="Simple key value json to set environment variables.For example if you want to set ES_HEAP_SIZE and LOG_DIR for elasticsearch use {\"ES_HEAP_SIZE\":\"1g\", \"LOG_DIR\": \"<PATH_FOR_LOG_FILE>\"}",
     )
 
     template.add_parameter(environment_variables)

@@ -19,3 +19,8 @@ dependencies
 1. boto
 2. mock
 3. troposphere
+
+
+For cloud init logs check
+1. /var/log/cloud-init-output.log
+2. /var/log/cloud-init.log

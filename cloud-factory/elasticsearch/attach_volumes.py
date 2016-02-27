@@ -84,63 +84,46 @@ def mount_volume(device, mount_point):
     run_command("sudo chown daemon:daemon " + mount_point)
 
 
-def start_marklogic():
-    run_command("sudo service MarkLogic start")
+def start_service():
+    run_command("sudo service elasticsearch start")
 
 
-def stop_marklogic():
-    run_command("sudo service MarkLogic stop")
+def stop_service():
+    run_command("sudo service elasticsearch stop")
 
 
 def validate_volume_length(found_volumes, instance_config):
-    if len(config_volumes) != len(instance_config):
-        message = "ERROR config mismatch len(config_volumes) : %d len(instance_config['ConfigVolume']) : %d" % (
-            len(config_volumes), len(instance_config))
+    if len(found_volumes) != len(instance_config):
+        message = "ERROR config mismatch len(found_volumes) : %d len(instance_config['<base>']) : %d" % (
+            len(found_volumes), len(instance_config))
         log(message)
         raise Exception(message)
 
 
 if __name__ == "__main__":
-    conn = boto.connect_ec2()
     with open("/etc/instance.conf") as aws_config_file:
         instance_config = json.load(aws_config_file)
+        conn = boto.connect_ec2()
 
-    stop_marklogic()
+        stop_service()
 
-    instance_id = urllib2.urlopen("http://169.254.169.254/latest/meta-data/instance-id").read()
-    log("INFO Found instance id : " + str(instance_id))
+        instance_id = urllib2.urlopen("http://169.254.169.254/latest/meta-data/instance-id").read()
+        log("INFO Found instance id : " + str(instance_id))
 
-    config_volumes = conn.get_all_volumes(None,
-                                          filters={"tag:aws:cloudformation:stack-name": instance_config["stack-name"],
-                                                   "tag:zone": instance_config["zone"],
-                                                   "tag:instance": str(instance_config["instanceNumber"]),
-                                                   "tag:type": "ConfigVolume"})
+        volume_search_tag = instance_config["stack-name"] + "-base-DataVolume-zone-" + instance_config["zone"] +"-instance-"+str(instance_config["instanceNumber"])
+        data_volumes = conn.get_all_volumes(None, filters={"tag:Name": volume_search_tag})
+        log("INFO Found data volume : %d " % (len(data_volumes)))
+        validate_volume_length(data_volumes, instance_config["DataVolumes"])
 
-    log("INFO Found config volumes : %d " % (len(config_volumes)))
-    validate_volume_length(config_volumes, instance_config["ConfigVolumes"])
+        network_interface_search_tag = instance_config["stack-name"] + "-base-NetworkInterface-zone-" + instance_config["zone"] +"-instance-"+str(instance_config["instanceNumber"])
+        network_interface = conn.get_all_network_interfaces(None, filters={"tag:Name": network_interface_search_tag})[0]
 
-    data_volumes = conn.get_all_volumes(None,
-                                        filters={"tag:aws:cloudformation:stack-name": instance_config["stack-name"],
-                                                 "tag:zone": instance_config["zone"],
-                                                 "tag:instance": str(instance_config["instanceNumber"]),
-                                                 "tag:type": "DataVolume"})
-    log("INFO Found data volume : %d " % (len(data_volumes)))
-    validate_volume_length(data_volumes, instance_config["DataVolumes"])
+        log("INFO Found network interface : " + str(network_interface))
 
-    network_interface = conn.get_all_network_interfaces(None, filters={
-        "tag:aws:cloudformation:stack-name": instance_config["stack-name"], "tag:zone": instance_config["zone"],
-        "tag:instance": str(instance_config["instanceNumber"])})[0]
+        attach_network_interface(network_interface, instance_id, 1)
 
-    log("INFO Found network interface : " + str(network_interface))
+        for data_volume in data_volumes:
+            attach_volume(data_volume, instance_id, data_volume.tags["Device"])
+            mount_volume(data_volume.tags["Device"], data_volume.tags["MountDirectory"])
 
-    attach_network_interface(network_interface, instance_id, 1)
-
-    for config_volume in config_volumes:
-        attach_volume(config_volume, instance_id, config_volume.tags["Device"])
-        mount_volume(config_volume.tags["Device"], config_volume.tags["MountDirectory"])
-
-    for data_volume in data_volumes:
-        attach_volume(data_volume, instance_id, data_volume.tags["Device"])
-        mount_volume(data_volume.tags["Device"], data_volume.tags["MountDirectory"])
-
-    start_marklogic()
+        start_service()

@@ -27,12 +27,9 @@ if __name__ == '__main__':
     with open('/etc/instance.conf') as aws_config_file:
         instance_config = json.load(aws_config_file)
 
-    config_volume = conn.get_all_volumes(None, filters={'tag:aws:cloudformation:stack-name': 'rasingh-MarkLogic-ml-master', 'tag:zone': instance_config["zone"], 'tag:instance': str(instance_config["instanceNumber"]), 'tag:type': "ConfigVolume"})[0]
-    print "Found config volume : "+str(config_volume)
-
-    data_volume = conn.get_all_volumes(None, filters={'tag:aws:cloudformation:stack-name': 'rasingh-MarkLogic-ml-master', 'tag:zone': instance_config["zone"], 'tag:instance': str(instance_config["instanceNumber"]), 'tag:type': "DataVolume"})[0]
+    volume_search_tag = instance_config["stack-name"] + "-base-DataVolume-zone-" + instance_config["zone"] +"-instance-"+str(instance_config["instanceNumber"])
+    data_volume = conn.get_all_volumes(None, filters={'tag:Name': volume_search_tag})[0]
     print "Found data volume : "+str(data_volume)
 
-    format_volume(config_volume.attach_data.device)
     format_volume(data_volume.attach_data.device)
 
