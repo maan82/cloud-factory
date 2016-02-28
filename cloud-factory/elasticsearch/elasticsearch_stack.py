@@ -70,9 +70,6 @@ def create_launch_config(aws_config, config, instance_type, az, instance_number,
     with open ("json_to_environment.py", "r") as format_volumes_file:
         environment_variables_file_string=format_volumes_file.read()
 
-    with open ("json_to_environment.py", "r") as format_volumes_file:
-        environment_variables_file_string=format_volumes_file.read()
-
     launch_configuration.UserData = Base64(Join('', [
         "#!/bin/bash\n",
         'echo \''+json.dumps(instance_config)+'\' > /etc/instance.conf\n',

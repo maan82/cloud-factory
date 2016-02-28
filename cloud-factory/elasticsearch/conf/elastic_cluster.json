@@ -63,6 +63,6 @@
     "SnapshotId": "snap-41163b47",
     "DeletionPolicy": "Delete",
     "Device" : "/dev/sdc",
-    "MountDirectory":"/var/opt/data"
+    "MountDirectory":"/etc/elasticsearch"
   }]
 }
