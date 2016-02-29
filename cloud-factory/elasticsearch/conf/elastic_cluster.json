@@ -3,7 +3,7 @@
   "Component": "Cluster01",
   "ElasticsearchAMIImageId": "ami-083a0b62",
   "NumberOfInstancesPerZone": 1,
-  "InstanceZones": [ "b" ],
+  "InstanceZones": [ "b", "c" , "e"],
   "InstanceType": "t2.small",
   "EbsOptimized": "false",
   "IamInstanceProfile": "rasingh-MarkLogic-role",
@@ -63,6 +63,6 @@
     "SnapshotId": "snap-41163b47",
     "DeletionPolicy": "Delete",
     "Device" : "/dev/sdc",
-    "MountDirectory":"/etc/elasticsearch"
+    "MountDirectory":"/var/opt/elasticsearch"
   }]
 }
