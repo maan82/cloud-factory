@@ -155,7 +155,7 @@ def create_data_volume(aws_config, config, az, instanceNumber, data_volume_numbe
     tags.append(ec2.Tag("MountDirectory", data_volume_config["MountDirectory"]))
     data_volume.Tags = tags
     data_volume.VolumeType = data_volume_config["VolumeType"]
-    if data_volume_config["FromSnapshot"] == "true":
+    if data_volume_config.get("FromSnapshot", "false") == "true":
         data_volume.SnapshotId = data_volume_config["SnapshotId"]
     return data_volume
 
@@ -320,7 +320,7 @@ if __name__ == '__main__':
         "EnvironmentVariables",
         Default="{}",
         Type="String",
-        Description="Simple key value json to set environment variables.For example if you want to set ES_HEAP_SIZE and LOG_DIR for elasticsearch use {\"ES_HEAP_SIZE\":\"1g\", \"LOG_DIR\": \"<PATH_FOR_LOG_FILE>\"}",
+        Description="Simple key value json to set environment variables.For example if you want to set ES_HEAP_SIZE for elasticsearch use {\"ES_HEAP_SIZE\":\"1g\"}",
     )
 
     template.add_parameter(environment_variables)

@@ -59,8 +59,6 @@
     "VolumeType": "gp2",
     "Iops": "10",
     "Size": "512",
-    "FromSnapshot": "true",
-    "SnapshotId": "snap-41163b47",
     "DeletionPolicy": "Delete",
     "Device" : "/dev/sdc",
     "MountDirectory":"/var/opt/elasticsearch"
